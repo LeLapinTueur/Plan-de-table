@@ -30,7 +30,7 @@ button.primary{background:var(--forest);color:var(--white)}
 button.primary:hover{background:var(--forest-2)}
 :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 
-.tabs-wrap{padding:8px clamp(16px,4vw,48px) 0;display:flex;gap:8px;flex-wrap:wrap}
+.tabs-wrap{padding:8px clamp(16px,4vw,48px) 0;display:flex;gap:8px;flex-wrap:wrap;position:relative;z-index:2}
 .tab-btn{border:1px solid var(--line);background:var(--panel);color:var(--forest-2);padding:9px 18px;border-radius:999px;font-weight:500}
 .tab-btn.active{background:var(--forest);color:var(--white);border-color:var(--forest)}
 
@@ -183,24 +183,24 @@ table.guest-menus tr:hover td{background:#fafcf9}
     <p class="sub">Déplacez les tables pour dessiner votre salle. Glissez les invités sur une table, ou touchez un invité puis une table.</p>
   </div>
   <div class="bar">
-    <button id="addTable" class="primary">Ajouter une table</button>
+    <button type="button" id="addTable" class="primary">Ajouter une table</button>
     <select id="addItem" aria-label="Ajouter un élément à la salle">
       <option value="">Ajouter un élément</option>
       <option>Piste de danse</option><option>DJ</option><option>Buffet</option><option>Bar</option><option>Scène</option><option>Gâteau</option><option>Entrée</option>
       <option value="*">Autre, nom libre…</option>
     </select>
-    <button id="exportBtn">Exporter</button>
+    <button type="button" id="exportBtn">Exporter</button>
     <label class="btn" tabindex="0">Importer<input id="importFile" type="file" accept="application/json" hidden></label>
-    <button id="printBtn">Imprimer</button>
-    <button id="resetBtn">Tout effacer</button>
+    <button type="button" id="printBtn">Imprimer</button>
+    <button type="button" id="resetBtn">Tout effacer</button>
   </div>
 </header>
 
-<nav class="tabs-wrap" aria-label="Navigation principale">
-  <button class="tab-btn active" data-tab="dashboard" id="tabDashBtn">Avancement</button>
-  <button class="tab-btn" data-tab="room" id="tabRoomBtn">Plan de salle</button>
-  <button class="tab-btn" data-tab="menus" id="tabMenusBtn">Traiteur, Invités &amp; Menus</button>
-  <button class="tab-btn" data-tab="dj" id="tabDjBtn">DJ &amp; Animation</button>
+<nav class="tabs-wrap" id="tabsNav" aria-label="Navigation principale">
+  <button type="button" class="tab-btn active" data-tab="dashboard" id="tabDashBtn">Avancement</button>
+  <button type="button" class="tab-btn" data-tab="room" id="tabRoomBtn">Plan de salle</button>
+  <button type="button" class="tab-btn" data-tab="menus" id="tabMenusBtn">Traiteur, Invités &amp; Menus</button>
+  <button type="button" class="tab-btn" data-tab="dj" id="tabDjBtn">DJ &amp; Animation</button>
 </nav>
 
 <section class="dash-view" id="dashView" aria-label="Tableau de bord d'avancement">
@@ -479,17 +479,18 @@ const sample = () => ({
 });
 let state, selected = null, activeTab = 'dashboard';
 try { state = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
-if (!state || !state.tables) state = sample();
+if (!state || typeof state !== 'object' || !Array.isArray(state.tables)) state = sample();
 function migrate() {
-  state.items = state.items || [];
-  state.dj = { ...defaultDj(), ...(state.dj || {}) };
-  state.caterer = { ...defaultCaterer(), ...(state.caterer || {}) };
+  state.items = Array.isArray(state.items) ? state.items : [];
+  state.tables = Array.isArray(state.tables) ? state.tables : [];
+  state.dj = { ...defaultDj(), ...(state.dj && typeof state.dj === 'object' ? state.dj : {}) };
+  state.caterer = { ...defaultCaterer(), ...(state.caterer && typeof state.caterer === 'object' ? state.caterer : {}) };
   if (!Array.isArray(state.menuOptions) || !state.menuOptions.length) {
     state.menuOptions = [...DEFAULT_MENUS];
   } else if (!state.menuOptions.includes('Non défini')) {
     state.menuOptions.unshift('Non défini');
   }
-  state.guests = state.guests || [];
+  state.guests = Array.isArray(state.guests) ? state.guests : [];
   state.guests.forEach(g => {
     if (!g.menu) g.menu = 'Non défini';
     if (!state.menuOptions.includes(g.menu)) state.menuOptions.push(g.menu);
@@ -507,11 +508,11 @@ function migrate() {
 migrate();
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { toast('Sauvegarde impossible (image trop lourde ?). Pensez à exporter.'); } };
 const $ = id => document.getElementById(id);
-const initials = n => n.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
-const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const fmtEur = v => `${Math.max(0, Math.round(v)).toLocaleString('fr-FR')} €`;
+const initials = n => String(n || '').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const fmtEur = v => `${Math.max(0, Math.round(Number(v) || 0)).toLocaleString('fr-FR')} €`;
 let toastT;
-function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2200); }
+function toast(msg) { const t = $('toast'); if (!t) return; t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2200); }
 
 function removeMenuOption(menuName) {
   if (menuName === 'Non défini') return;
@@ -533,6 +534,7 @@ function removeMenuOption(menuName) {
 // Infobulle au survol d'un invité dans une table ou de l'élément DJ
 const tip = $('hoverTip');
 function showTipHtml(e, html) {
+  if (!tip) return;
   tip.innerHTML = html;
   tip.classList.add('show');
   moveGuestTip(e);
@@ -543,16 +545,17 @@ function showGuestTip(e, g) {
   showTipHtml(e, `<strong>${esc(g.name)}</strong><small>Menu : ${esc(g.menu || 'Non défini')}${tbl ? ' · ' + esc(tbl.name) : ''}</small>`);
 }
 function moveGuestTip(e) {
+  if (!tip) return;
   const pad = 14;
   const x = Math.min(window.innerWidth - tip.offsetWidth - 10, e.clientX + pad);
   const y = Math.min(window.innerHeight - tip.offsetHeight - 10, e.clientY + pad);
   tip.style.left = Math.max(8, x) + 'px';
   tip.style.top = Math.max(8, y) + 'px';
 }
-function hideGuestTip() { tip.classList.remove('show'); }
+function hideGuestTip() { if (tip) tip.classList.remove('show'); }
 function attachGuestHover(el, g) {
   el.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse' || !e.pointerType) showGuestTip(e, g); });
-  el.addEventListener('pointermove', e => { if (tip.classList.contains('show')) moveGuestTip(e); });
+  el.addEventListener('pointermove', e => { if (tip && tip.classList.contains('show')) moveGuestTip(e); });
   el.addEventListener('pointerleave', hideGuestTip);
 }
 function attachDjHover(el) {
@@ -563,30 +566,39 @@ function attachDjHover(el) {
     const details = [dj.status, dj.hours, dj.price ? dj.price + ' €' : ''].filter(Boolean).join(' · ');
     showTipHtml(e, `<strong>🎧 ${title}</strong><small>${esc(details || 'Renseignez sa fiche dans l’onglet DJ')}</small>`);
   });
-  el.addEventListener('pointermove', e => { if (tip.classList.contains('show')) moveGuestTip(e); });
+  el.addEventListener('pointermove', e => { if (tip && tip.classList.contains('show')) moveGuestTip(e); });
   el.addEventListener('pointerleave', hideGuestTip);
 }
 
 function setTab(tab) {
   activeTab = tab;
-  $('dashView').classList.toggle('hidden', tab !== 'dashboard');$('roomView').classList.toggle('hidden', tab !== 'room');
-  $('menusView').classList.toggle('hidden', tab !== 'menus');$('djView').classList.toggle('hidden', tab !== 'dj');
-  $('tabDashBtn').classList.toggle('active', tab === 'dashboard');$('tabRoomBtn').classList.toggle('active', tab === 'room');
-  $('tabMenusBtn').classList.toggle('active', tab === 'menus');$('tabDjBtn').classList.toggle('active', tab === 'dj');
+  $('dashView').classList.toggle('hidden', tab !== 'dashboard');
+  $('roomView').classList.toggle('hidden', tab !== 'room');
+  $('menusView').classList.toggle('hidden', tab !== 'menus');
+  $('djView').classList.toggle('hidden', tab !== 'dj');
+  $('tabDashBtn').classList.toggle('active', tab === 'dashboard');
+  $('tabRoomBtn').classList.toggle('active', tab === 'room');
+  $('tabMenusBtn').classList.toggle('active', tab === 'menus');
+  $('tabDjBtn').classList.toggle('active', tab === 'dj');
   hideGuestTip();
   if (tab === 'dashboard') renderDashboard();
   if (tab === 'menus') renderMenusView();
   if (tab === 'dj') renderDjView();
 }
-$('tabDashBtn').onclick = () => setTab('dashboard');$('tabRoomBtn').onclick = () => setTab('room');
-$('tabMenusBtn').onclick = () => setTab('menus');$('tabDjBtn').onclick = () => setTab('dj');
+
+// Délégation fiable sur la barre d'onglets
+$('tabsNav').addEventListener('click', e => {
+  const btn = e.target.closest('[data-tab]');
+  if (btn) setTab(btn.dataset.tab);
+});
 
 function computeProgress() {
-  const guests = state.guests || [];
+  const guests = Array.isArray(state.guests) ? state.guests : [];
+  const tables = Array.isArray(state.tables) ? state.tables : [];
   const totalGuests = guests.length;
   const placedGuests = guests.filter(g => g.table).length;
   const unplacedNames = guests.filter(g => !g.table).map(g => g.name);
-  const totalSeats = (state.tables || []).reduce((a, t) => a + (t.cap || 0), 0);
+  const totalSeats = tables.reduce((a, t) => a + (Number(t.cap) || 0), 0);
 
   // 1. Placement de table
   const seatingPct = totalGuests === 0 ? 0 : Math.round((placedGuests / totalGuests) * 100);
@@ -611,8 +623,8 @@ function computeProgress() {
         : { cls: 'todo', label: 'Pas fait' };
 
   // 3. Traiteur
-  const cat = state.caterer || defaultCaterer();
-  const catHasName = Boolean((cat.name || '').trim());
+  const cat = { ...defaultCaterer(), ...(state.caterer || {}) };
+  const catHasName = Boolean(String(cat.name || '').trim());
   const catPpg = parseFloat(cat.pricePerGuest) || 0;
   const catExtra = parseFloat(cat.extraFee) || 0;
   const catDeposit = parseFloat(cat.deposit) || 0;
@@ -636,4 +648,668 @@ function computeProgress() {
     ? { cls: 'todo', label: 'Pas fait' }
     : catPct >= 90
       ? { cls: 'done', label: cat.status }
-      : { cls: 'wip
+      : { cls: 'wip', label: cat.status || 'En cours' };
+
+  // 4. DJ
+  const dj = { ...defaultDj(), ...(state.dj || {}) };
+  const djHasName = Boolean(String(dj.name || '').trim());
+  const djHasSchedule = Boolean(String(dj.hours || '').trim() || String(dj.date || '').trim());
+  const djPrice = parseFloat(dj.price) || 0;
+  const djDeposit = parseFloat(dj.deposit) || 0;
+  const djRest = Math.max(0, djPrice - djDeposit);
+  const djBooked = dj.status === 'Confirmé / Réservé';
+  const djOption = dj.status === 'Option posée' || dj.status === 'Disponible · Devis demandé';
+
+  let djPaymentState = 'Pas payé';
+  if (djPrice <= 0 && djDeposit <= 0) djPaymentState = 'Tarif non défini';
+  else if (djDeposit <= 0) djPaymentState = `Non payé (${fmtEur(djPrice)} à régler)`;
+  else if (djRest > 0) djPaymentState = `Acompte ${fmtEur(djDeposit)} versé · Reste ${fmtEur(djRest)}`;
+  else djPaymentState = `Soldé (${fmtEur(djPrice)})`;
+
+  let djScore = 0;
+  if (djHasName) djScore += 40;
+  if (djHasSchedule) djScore += 20;
+  if (djBooked) djScore += 25;
+  else if (djOption) djScore += 10;
+  if (djPrice > 0) djScore += 5;
+  if (djDeposit > 0) djScore += 10;
+  const djPct = !djHasName && !djHasSchedule && !djPrice && !djDeposit && !djBooked && !djOption ? 0 : Math.min(100, djScore);
+  const djBadge = djPct === 0
+    ? { cls: 'todo', label: 'Pas de DJ · 0%' }
+    : djBooked
+      ? { cls: 'done', label: 'Confirmé' }
+      : { cls: 'wip', label: dj.status || 'En cours' };
+
+  const globalPct = Math.round((seatingPct + menusPct + catPct + djPct) / 4);
+
+  const todos = [];
+  if (totalGuests === 0) {
+    todos.push({ cat: 'Invités', text: 'Ajouter votre liste d’invités pour commencer le placement et les menus.', tab: 'room' });
+  } else {
+    if (unplacedNames.length > 0) {
+      const preview = unplacedNames.slice(0, 4).join(', ') + (unplacedNames.length > 4 ? ` (+${unplacedNames.length - 4})` : '');
+      todos.push({ cat: 'Placement', text: `Placer ${unplacedNames.length} invité(s) sur une table : ${preview}.`, tab: 'room' });
+    }
+    if (totalSeats < totalGuests) {
+      todos.push({ cat: 'Placement', text: `Capacité insuffisante : ${totalSeats} places pour ${totalGuests} invités (ajoutez une table ou augmentez les places).`, tab: 'room' });
+    }
+    if (undefinedMenuGuests.length > 0) {
+      const preview = undefinedMenuGuests.slice(0, 4).map(g => g.name).join(', ') + (undefinedMenuGuests.length > 4 ? ` (+${undefinedMenuGuests.length - 4})` : '');
+      todos.push({ cat: 'Menus', text: `Définir le menu de ${undefinedMenuGuests.length} invité(s) : ${preview}.`, tab: 'menus' });
+    }
+  }
+
+  if (!catHasName) {
+    todos.push({ cat: 'Traiteur', text: 'Renseigner le nom / la maison du traiteur retenu.', tab: 'menus' });
+  } else if (!catBooked) {
+    todos.push({ cat: 'Traiteur', text: `Finaliser le statut du traiteur « ${cat.name} » (actuellement : ${cat.status}).`, tab: 'menus' });
+  }
+  if (catHasName && catPpg <= 0 && catExtra <= 0) {
+    todos.push({ cat: 'Traiteur', text: `Indiquer le tarif par invité (ou forfait) pour « ${cat.name} ».`, tab: 'menus' });
+  } else if (catHasName && catDeposit <= 0 && (catPpg > 0 || catExtra > 0)) {
+    todos.push({ cat: 'Paiement Traiteur', text: `Acompte traiteur non payé (${fmtEur(catTotal)} estimés).`, tab: 'menus' });
+  } else if (catHasName && catRest > 0) {
+    todos.push({ cat: 'Paiement Traiteur', text: `Solde traiteur à régler : ${fmtEur(catRest)}.`, tab: 'menus' });
+  }
+
+  if (!djHasName) {
+    todos.push({ cat: 'DJ', text: 'Aucun DJ renseigné : ajouter son nom ou pseudo.', tab: 'dj' });
+  } else if (!djBooked) {
+    todos.push({ cat: 'DJ', text: `Confirmer la disponibilité / réservation de « ${dj.name} » (${dj.status}).`, tab: 'dj' });
+  }
+  if (djHasName && !djHasSchedule) {
+    todos.push({ cat: 'DJ', text: `Préciser la date ou les horaires de prestation de « ${dj.name} ».`, tab: 'dj' });
+  }
+  if (djHasName && djPrice <= 0) {
+    todos.push({ cat: 'Paiement DJ', text: `Renseigner le tarif de « ${dj.name} ».`, tab: 'dj' });
+  } else if (djHasName && djDeposit <= 0 && djPrice > 0) {
+    todos.push({ cat: 'Paiement DJ', text: `Acompte DJ non payé (${fmtEur(djPrice)}).`, tab: 'dj' });
+  } else if (djHasName && djRest > 0) {
+    todos.push({ cat: 'Paiement DJ', text: `Solde DJ à régler : ${fmtEur(djRest)}.`, tab: 'dj' });
+  }
+
+  return {
+    globalPct,
+    cards: [
+      {
+        title: 'Placement de table',
+        pct: seatingPct,
+        badge: seatingBadge,
+        meta: `${placedGuests} / ${totalGuests} invité(s) placé(s) · ${totalSeats} place(s) (${tables.length} table(s))`,
+        subMeta: unplacedNames.length ? `${unplacedNames.length} à placer` : 'Toutes les places attribuées',
+        tab: 'room',
+        cta: 'Ouvrir le plan'
+      },
+      {
+        title: 'Menus invités',
+        pct: menusPct,
+        badge: menusBadge,
+        meta: `${definedMenus} / ${totalGuests} menu(s) défini(s)`,
+        subMeta: undefinedMenuGuests.length ? `${undefinedMenuGuests.length} « Non défini »` : 'Tous les menus renseignés',
+        tab: 'menus',
+        cta: 'Gérer les menus'
+      },
+      {
+        title: 'Traiteur',
+        pct: catPct,
+        badge: catBadge,
+        meta: catHasName ? cat.name : 'Aucun traiteur renseigné',
+        subMeta: `Paiement : ${catPaymentState}`,
+        tab: 'menus',
+        cta: 'Voir le traiteur'
+      },
+      {
+        title: 'DJ & Animation',
+        pct: djPct,
+        badge: djBadge,
+        meta: djHasName ? dj.name : 'Aucun DJ renseigné',
+        subMeta: `Paiement : ${djPaymentState}`,
+        tab: 'dj',
+        cta: 'Voir le DJ'
+      }
+    ],
+    todos
+  };
+}
+
+function renderDashboard() {
+  try {
+    const p = computeProgress();
+    $('globalPct').textContent = `${p.globalPct}%`;
+    const grid = $('kpiGrid');
+    grid.innerHTML = '';
+
+    p.cards.forEach(c => {
+      const card = document.createElement('div');
+      card.className = 'kpi-card';
+      card.innerHTML = `
+        <div class="kpi-head">
+          <h3>${esc(c.title)}</h3>
+          <span class="kpi-pct">${c.pct}%</span>
+        </div>
+        <span class="pill-state ${c.badge.cls}">${esc(c.badge.label)}</span>
+        <div class="kpi-bar"><i class="${c.pct === 100 ? 'done' : ''}" style="width:${c.pct}%"></i></div>
+        <div class="kpi-meta">${esc(c.meta)}</div>
+        <div class="kpi-meta"><strong>${esc(c.subMeta)}</strong></div>
+        <button type="button" class="btn btn-link" data-goto="${esc(c.tab)}">${esc(c.cta)} →</button>
+      `;
+      grid.appendChild(card);
+    });
+
+    const todoList = $('todoList');
+    todoList.innerHTML = '';
+    if (!p.todos.length) {
+      todoList.innerHTML = `<li class="todo-done-msg">🎉 Tout est complet : placement, menus, traiteur et DJ sont renseignés et réglés.</li>`;
+      return;
+    }
+    p.todos.forEach(item => {
+      const li = document.createElement('li');
+      li.className = 'todo-item';
+      li.innerHTML = `
+        <div class="todo-left">
+          <span class="todo-cat">${esc(item.cat)}</span>
+          <span>${esc(item.text)}</span>
+        </div>
+        <button type="button" class="btn" data-goto="${esc(item.tab)}" style="padding:5px 12px;font-size:.82rem">Aller →</button>
+      `;
+      todoList.appendChild(li);
+    });
+  } catch (err) {
+    console.error('Erreur tableau de bord:', err);
+  }
+}
+
+$('dashView').addEventListener('click', e => {
+  const btn = e.target.closest('[data-goto]');
+  if (btn) setTab(btn.dataset.goto);
+});
+
+function assign(gid, tid, seat) {
+  const g = state.guests.find(x => x.id === gid); if (!g) return;
+  if (!tid) { g.table = null; g.seat = null; selected = null; save(); render(); return; }
+  const t = state.tables.find(x => x.id === tid);
+  const others = state.guests.filter(x => x.table === tid && x.id !== gid);
+  if (seat == null) {
+    const used = new Set(others.map(x => x.seat));
+    seat = [...Array(t.cap).keys()].find(i => !used.has(i));
+    if (seat == null) { toast(t.name + ' est complète'); return; }
+  } else {
+    const h = others.find(x => x.seat === seat);
+    if (h) { h.table = g.table; h.seat = g.table ? g.seat : null; }
+  }
+  g.table = tid; g.seat = seat; selected = null; save(); render();
+}
+
+function chip(g, inTable) {
+  const el = document.createElement('div');
+  el.className = 'chip' + (selected === g.id ? ' sel' : '');
+  el.draggable = true; el.tabIndex = 0;
+  const menuBadge = g.menu && g.menu !== 'Non défini' ? `<span class="menu-tag">${esc(g.menu)}</span>` : '';
+  el.innerHTML = `<span>${esc(g.name)}</span>${menuBadge}<button type="button" class="x" aria-label="${inTable ? 'Retirer de la table' : 'Supprimer'} ${esc(g.name)}">${inTable ? '↩' : '×'}</button>`;
+  if (inTable) attachGuestHover(el, g);
+  el.addEventListener('dragstart', e => { hideGuestTip(); e.dataTransfer.setData('text/plain', g.id); e.dataTransfer.effectAllowed = 'move'; });
+  el.addEventListener('click', e => {
+    if (e.target.closest('.x')) {
+      hideGuestTip();
+      if (inTable) assign(g.id, null);
+      else { state.guests = state.guests.filter(x => x.id !== g.id); save(); render(); }
+      return;
+    }
+    selected = selected === g.id ? null : g.id; render();
+  });
+  el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); } });
+  return el;
+}
+
+function render() {
+  const q = $('search').value.trim().toLowerCase();
+  const free = state.guests.filter(g => !g.table && g.name.toLowerCase().includes(q));
+  const list = $('guestList'); list.innerHTML = '';
+  free.forEach(g => list.appendChild(chip(g, false)));
+  if (!free.length) list.innerHTML = `<div class="empty">${state.guests.length && !q ? 'Tout le monde est placé 🎉' : q ? 'Aucun résultat.' : 'Ajoutez votre premier invité ci-dessus.'}</div>`;
+  const placed = state.guests.filter(g => g.table).length, total = state.guests.length;
+  $('count').textContent = `${placed} placés sur ${total} · ${total - placed} à placer`;
+  $('bar').style.width = total ? (placed / total * 100) + '%' : '0%';
+  const seats = state.tables.reduce((a, t) => a + t.cap, 0);
+  $('seatInfo').textContent = `${state.tables.length} tables · ${seats} places`;
+
+  renderRoom();
+  if (activeTab === 'dashboard') renderDashboard();
+  if (activeTab === 'menus') renderMenusView();
+  if (activeTab === 'dj') renderDjView();
+}
+
+// Gestion du traiteur dans la partie Menus
+const CATERER_FIELDS = [
+  ['catererName', 'name'],
+  ['catererStatus', 'status'],
+  ['catererPhone', 'phone'],
+  ['catererEmail', 'email'],
+  ['catererPricePerGuest', 'pricePerGuest'],
+  ['catererExtraFee', 'extraFee'],
+  ['catererDeposit', 'deposit'],
+  ['catererNotes', 'notes']
+];
+
+function updateCatererSummaryUI() {
+  const cat = state.caterer;
+  const badge = $('catererStatusBadge');
+  badge.textContent = cat.status || 'Devis en cours';
+  badge.classList.toggle('ok', cat.status === 'Confirmé' || cat.status === 'Devis validé / Contrat signé');
+
+  const guestsCount = state.guests.length;
+  const ppg = parseFloat(cat.pricePerGuest) || 0;
+  const extra = parseFloat(cat.extraFee) || 0;
+  const deposit = parseFloat(cat.deposit) || 0;
+  const total = guestsCount * ppg + extra;
+  const rest = Math.max(0, total - deposit);
+
+  $('catererTotalText').textContent = `Total estimé (${guestsCount} inv.) : ${total.toLocaleString('fr-FR')} €`;
+  $('catererBalance').textContent = `Reste : ${rest.toLocaleString('fr-FR')} €`;
+}
+
+function renderCatererFields() {
+  CATERER_FIELDS.forEach(([elId, key]) => {
+    const el = $(elId);
+    if (el) el.value = state.caterer[key] ?? '';
+  });
+  updateCatererSummaryUI();
+}
+
+CATERER_FIELDS.forEach(([elId, key]) => {
+  const el = $(elId);
+  if (!el) return;
+  const evt = el.tagName === 'SELECT' ? 'change' : 'input';
+  el.addEventListener(evt, () => {
+    state.caterer[key] = el.value;
+    save();
+    updateCatererSummaryUI();
+  });
+});
+
+function renderMenusView() {
+  renderCatererFields();
+
+  const filterSel = $('menuFilter');
+  const currentFilter = filterSel.value;
+  filterSel.innerHTML = `<option value="">Tous les menus</option>` +
+    state.menuOptions.map(m => `<option value="${esc(m)}">${esc(m)}</option>`).join('');
+  if (state.menuOptions.includes(currentFilter)) filterSel.value = currentFilter;
+
+  const summary = $('menuSummary');
+  summary.innerHTML = '';
+  state.menuOptions.forEach(m => {
+    const c = state.guests.filter(g => (g.menu || 'Non défini') === m).length;
+    const pill = document.createElement('span');
+    pill.className = 'summary-pill';
+    pill.innerHTML = `<strong>${c}</strong> · ${esc(m)}` +
+      (m !== 'Non défini' ? `<button type="button" class="rm-menu" title="Retirer le menu ${esc(m)}" aria-label="Retirer le menu ${esc(m)}">×</button>` : '');
+    const rmBtn = pill.querySelector('.rm-menu');
+    if (rmBtn) rmBtn.onclick = () => removeMenuOption(m);
+    summary.appendChild(pill);
+  });
+
+  const q = $('menuSearch').value.trim().toLowerCase();
+  const f = filterSel.value;
+  const rows = state.guests.filter(g => {
+    const tbl = state.tables.find(t => t.id === g.table);
+    const matchText = !q || g.name.toLowerCase().includes(q) || (tbl && tbl.name.toLowerCase().includes(q)) || (g.menu || '').toLowerCase().includes(q);
+    const matchMenu = !f || (g.menu || 'Non défini') === f;
+    return matchText && matchMenu;
+  });
+
+  $('menusCount').textContent = `${state.guests.length} invité(s) au total · ${rows.length} affiché(s)`;
+  const tbody = $('guestMenusBody');
+  tbody.innerHTML = '';
+
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="4" class="empty">Aucun invité à afficher.</td></tr>`;
+    return;
+  }
+
+  rows.forEach(g => {
+    const tbl = state.tables.find(t => t.id === g.table);
+    const tr = document.createElement('tr');
+    const optsHtml = state.menuOptions.map(m =>
+      `<option value="${esc(m)}" ${(g.menu || 'Non défini') === m ? 'selected' : ''}>${esc(m)}</option>`
+    ).join('');
+    tr.innerHTML = `
+      <td><strong>${esc(g.name)}</strong></td>
+      <td>${tbl ? `<span class="badge-placed">${esc(tbl.name)}</span>` : `<span class="badge-unplaced">Non placé</span>`}</td>
+      <td><select aria-label="Menu de ${esc(g.name)}">${optsHtml}</select></td>
+      <td><button type="button" class="del-guest">Supprimer</button></td>
+    `;
+    tr.querySelector('select').onchange = e => {
+      g.menu = e.target.value;
+      save();
+      render();
+      toast(`Menu de ${g.name} : ${g.menu}`);
+    };
+    tr.querySelector('.del-guest').onclick = () => {
+      state.guests = state.guests.filter(x => x.id !== g.id);
+      if (selected === g.id) selected = null;
+      save();
+      render();
+    };
+    tbody.appendChild(tr);
+  });
+}
+
+// Gestion de l'onglet DJ
+const DJ_FIELDS = [
+  ['djName', 'name'],
+  ['djPhone', 'phone'],
+  ['djEmail', 'email'],
+  ['djSocial', 'social'],
+  ['djStatus', 'status'],
+  ['djDate', 'date'],
+  ['djSetupTime', 'setupTime'],
+  ['djHours', 'hours'],
+  ['djPrice', 'price'],
+  ['djDeposit', 'deposit'],
+  ['djEquipment', 'equipment'],
+  ['djKeySongs', 'keySongs'],
+  ['djNotes', 'notes']
+];
+
+function updateDjSummaryUI() {
+  const dj = state.dj;
+  const badge = $('djStatusBadge');
+  badge.textContent = dj.status || 'À contacter';
+  badge.classList.toggle('ok', dj.status === 'Confirmé / Réservé');
+
+  const price = parseFloat(dj.price) || 0;
+  const deposit = parseFloat(dj.deposit) || 0;
+  const rest = Math.max(0, price - deposit);
+  $('djBalance').textContent = `${rest.toLocaleString('fr-FR')} €`;
+}
+
+function renderDjView() {
+  DJ_FIELDS.forEach(([elId, key]) => {
+    const el = $(elId);
+    if (el) el.value = state.dj[key] ?? '';
+  });
+  updateDjSummaryUI();
+}
+
+DJ_FIELDS.forEach(([elId, key]) => {
+  const el = $(elId);
+  if (!el) return;
+  const evt = el.tagName === 'SELECT' ? 'change' : 'input';
+  el.addEventListener(evt, () => {
+    state.dj[key] = el.value;
+    save();
+    updateDjSummaryUI();
+  });
+});
+
+$('addMenuTypeBtn').onclick = () => {
+  const inp = $('newMenuName');
+  const val = inp.value.trim();
+  if (!val) return;
+  if (!state.menuOptions.includes(val)) {
+    state.menuOptions.push(val);
+    save();
+    renderMenusView();
+    toast(`Menu « ${val} » ajouté`);
+  }
+  inp.value = '';
+};
+$('newMenuName').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $('addMenuTypeBtn').click(); } };
+$('menuSearch').oninput = renderMenusView;
+$('menuFilter').onchange = renderMenusView;
+
+let sel = null;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, Math.round(v) || a));
+const tH = t => t.shape === 'rect' ? t.h : t.w;
+const OFF = 22;
+
+function seatPos(t, i) {
+  if (t.shape === 'round') {
+    const a = 2 * Math.PI * i / t.cap - Math.PI / 2, r = t.w / 2 + OFF;
+    return [r * Math.cos(a), r * Math.sin(a)];
+  }
+  const a = t.w / 2 + OFF, b = tH(t) / 2 + OFF;
+  let d = i * 4 * (a + b) / t.cap;
+  if (d < a) return [d, -b]; d -= a;
+  if (d < 2 * b) return [a, -b + d]; d -= 2 * b;
+  if (d < 2 * a) return [a - d, b]; d -= 2 * a;
+  if (d < 2 * b) return [-a, b - d]; d -= 2 * b;
+  return [-a + d, -b];
+}
+const seatGap = t => (t.shape === 'round' ? Math.PI * (t.w + 2 * OFF) : 2 * (t.w + tH(t) + 4 * OFF)) / t.cap;
+
+function renderRoom() {
+  const rm = $('room'); rm.innerHTML = '';
+  state.items.forEach(it => {
+    const el = document.createElement('div');
+    el.className = 'item' + (sel && sel.id === it.id ? ' sel' : '');
+    el.style.cssText = `left:${it.x}%;top:${it.y}%;width:${it.w}px;height:${it.h}px`;
+    if (it.shape === 'ellipse') el.style.borderRadius = '50%';
+    if (/^#[0-9a-f]{6}$/i.test(it.color || '')) el.style.backgroundColor = it.color;
+    if ((it.bg || '').startsWith('data:image/')) {
+      el.style.backgroundImage = `url("${it.bg}")`;
+      el.style.backgroundSize = 'cover'; el.style.backgroundPosition = 'center';
+      el.style.color = '#fff'; el.style.textShadow = '0 1px 5px rgba(0,0,0,.7)';
+    }
+    el.textContent = it.label;
+    if (/^dj\b/i.test(it.label.trim())) attachDjHover(el);
+    makeDraggable(el, it, 'item'); rm.appendChild(el);
+  });
+  state.tables.forEach(t => {
+    const guests = state.guests.filter(g => g.table === t.id);
+    const W = t.w + 2 * (OFF + 15), H = tH(t) + 2 * (OFF + 15);
+    const el = document.createElement('div');
+    el.className = 'tbl' + (guests.length >= t.cap ? ' full' : '') + (sel && sel.id === t.id ? ' sel' : '');
+    el.style.left = t.x + '%'; el.style.top = t.y + '%';
+    const seats = document.createElement('div');
+    seats.className = 'seats'; seats.style.width = W + 'px'; seats.style.height = H + 'px';
+    seats.innerHTML = `<div class="disc" style="inset:${OFF + 15}px;border-radius:${t.shape === 'round' ? '50%' : '16px'}"><div>${esc(t.name)}<small>${guests.length}/${t.cap}</small></div></div>`;
+    for (let i = 0; i < t.cap; i++) {
+      const [x, y] = seatPos(t, i), g = guests.find(q => q.seat === i);
+      const s = document.createElement('div');
+      s.className = 'seat' + (g ? ' on' : '') + (g && selected === g.id ? ' sel' : '');
+      s.dataset.i = i; s.style.left = (W / 2 + x) + 'px'; s.style.top = (H / 2 + y) + 'px';
+      if (g) {
+        s.textContent = initials(g.name);
+        s.title = `${g.name} — Menu : ${g.menu || 'Non défini'}`;
+        s.draggable = true;
+        attachGuestHover(s, g);
+        s.addEventListener('dragstart', e => { hideGuestTip(); e.dataTransfer.setData('text/plain', g.id); e.dataTransfer.effectAllowed = 'move'; });
+        s.addEventListener('click', () => {
+          sel = { kind: 'table', id: t.id };
+          if (selected && selected !== g.id) assign(selected, t.id, i);
+          else { selected = selected === g.id ? null : g.id; render(); }
+        });
+      }
+      seats.appendChild(s);
+    }
+    el.appendChild(seats);
+    makeDraggable(el, t, 'table');
+    const seatOf = e => { const q = e.target.closest && e.target.closest('.seat'); return q ? +q.dataset.i : undefined; };
+    const clear = () => { el.classList.remove('over'); el.querySelectorAll('.seat.hot').forEach(x => x.classList.remove('hot')); };
+    el.addEventListener('dragover', e => {
+      e.preventDefault(); clear(); el.classList.add('over');
+      const i = seatOf(e); if (i != null) el.querySelector(`.seat[data-i="${i}"]`).classList.add('hot');
+    });
+    el.addEventListener('dragleave', clear);
+    el.addEventListener('drop', e => { e.preventDefault(); clear(); assign(e.dataTransfer.getData('text/plain'), t.id, seatOf(e)); });
+    rm.appendChild(el);
+  });
+  renderDetail();
+}
+
+function makeDraggable(el, obj, kind) {
+  el.addEventListener('pointerdown', e => {
+    if (e.button) return;
+    const seatEl = e.target.closest && e.target.closest('.seat');
+    if (seatEl && seatEl.classList.contains('on')) return;
+    const seatIdx = seatEl ? +seatEl.dataset.i : undefined;
+    const rect = $('room').getBoundingClientRect();
+    const sx = e.clientX, sy = e.clientY, ox = obj.x, oy = obj.y;
+    let moved = false;
+    el.setPointerCapture(e.pointerId);
+    const move = ev => {
+      const dx = ev.clientX - sx, dy = ev.clientY - sy;
+      if (!moved && Math.hypot(dx, dy) < 5) return;
+      moved = true; el.classList.add('drag');
+      obj.x = Math.max(4, Math.min(96, ox + dx / rect.width * 100));
+      obj.y = Math.max(4, Math.min(96, oy + dy / rect.height * 100));
+      el.style.left = obj.x + '%'; el.style.top = obj.y + '%';
+    };
+    const up = ev => {
+      el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up);
+      if (ev.type === 'pointercancel') return;
+      sel = { kind, id: obj.id };
+      if (moved) { save(); render(); return; }
+      if (kind === 'table' && selected) { assign(selected, obj.id, seatIdx); return; }
+      render();
+    };
+    el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+  });
+}
+
+function readImage(file, cb) {
+  const r = new FileReader();
+  r.onload = () => {
+    const im = new Image();
+    im.onload = () => {
+      const k = Math.min(1, 700 / Math.max(im.width, im.height)), c = document.createElement('canvas');
+      c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+      cb(c.toDataURL('image/jpeg', .82));
+    };
+    im.onerror = () => toast('Image illisible');
+    im.src = r.result;
+  };
+  r.readAsDataURL(file);
+}
+
+function renderDetail() {
+  const d = $('detail');
+  const t = sel && sel.kind === 'table' && state.tables.find(x => x.id === sel.id);
+  const it = sel && sel.kind === 'item' && state.items.find(x => x.id === sel.id);
+  if (!t && !it) {
+    sel = null;
+    d.innerHTML = '<div class="empty">Touchez une table ou un élément pour le modifier. Survolez un invité de la table pour voir son menu.</div>';
+    return;
+  }
+  const num = (c, label, v, min, max, step) => `<label class="tcap">${label} <input type="number" class="${c}" min="${min}" max="${max}" step="${step}" value="${v}"></label>`;
+  const q = c => d.querySelector(c);
+  if (it) {
+    d.innerHTML = `<input class="tname" value="${esc(it.label)}" aria-label="Nom de l'élément">
+      ${num('iw', 'Largeur', it.w, 30, 600, 10)}${num('ih', 'Hauteur', it.h, 20, 500, 10)}
+      <label class="tcap">Forme <select class="ish"><option value="rect">Rectangle</option><option value="ellipse">Ovale</option></select></label>
+      <label class="tcap">Couleur <input type="color" class="ic" value="${/^#[0-9a-f]{6}$/i.test(it.color || '') ? it.color : '#f8ddd7'}"></label>
+      <label class="btn" tabindex="0">${it.bg ? 'Changer le fond' : 'Ajouter un fond'}<input type="file" class="ib" accept="image/*" hidden></label>
+      ${it.bg ? '<button type="button" class="nobg">Retirer le fond</button>' : ''}
+      <button type="button" class="del">Supprimer</button>`;
+    q('.ish').value = it.shape || 'rect';
+    q('.tname').onchange = e => { it.label = e.target.value.trim() || 'Élément'; save(); render(); };
+    q('.iw').onchange = e => { it.w = clamp(e.target.value, 30, 600); save(); render(); };
+    q('.ih').onchange = e => { it.h = clamp(e.target.value, 20, 500); save(); render(); };
+    q('.ish').onchange = e => { it.shape = e.target.value; save(); render(); };
+    q('.ic').onchange = e => { it.color = e.target.value; save(); render(); };
+    q('.ib').onchange = e => { const f = e.target.files[0]; if (f) readImage(f, url => { it.bg = url; save(); render(); }); };
+    if (q('.nobg')) q('.nobg').onclick = () => { delete it.bg; save(); render(); };
+    q('.del').onclick = () => { state.items = state.items.filter(x => x !== it); sel = null; save(); render(); };
+    return;
+  }
+  const guests = state.guests.filter(g => g.table === t.id);
+  d.innerHTML = `<input class="tname" value="${esc(t.name)}" aria-label="Nom de la table">
+    <label class="tcap">Forme <select class="shape"><option value="round">Ronde</option><option value="square">Carrée</option><option value="rect">Rectangle</option></select></label>
+    ${num('tw', t.shape === 'round' ? 'Diamètre' : t.shape === 'square' ? 'Côté' : 'Longueur', t.w, 50, 400, 10)}
+    ${t.shape === 'rect' ? num('th', 'Largeur', t.h, 50, 400, 10) : ''}
+    ${num('cap', 'Places', t.cap, 1, 40, 1)}
+    <button type="button" class="dup">Dupliquer</button><button type="button" class="del">Supprimer</button>
+    ${seatGap(t) < 32 ? '<div class="warn">Les places sont serrées : agrandissez la table ou réduisez le nombre de places.</div>' : ''}
+    <div class="names"></div>`;
+  q('.shape').value = t.shape;
+  const names = q('.names');
+  guests.forEach(g => names.appendChild(chip(g, true)));
+  if (!guests.length) names.innerHTML = '<div class="empty">Aucun invité. Glissez un invité sur une place de la table pour l\'asseoir.</div>';
+  q('.tname').onchange = e => { t.name = e.target.value.trim() || 'Table'; save(); render(); };
+  q('.shape').onchange = e => { t.shape = e.target.value; if (t.shape !== 'rect') t.h = t.w; save(); render(); };
+  q('.tw').onchange = e => { t.w = clamp(e.target.value, 50, 400); if (t.shape !== 'rect') t.h = t.w; save(); render(); };
+  if (q('.th')) q('.th').onchange = e => { t.h = clamp(e.target.value, 50, 400); save(); render(); };
+  q('.cap').onchange = e => {
+    const v = clamp(e.target.value, 1, 40);
+    if (v < t.cap) {
+      if (guests.length > v) { toast('Retirez d\'abord des invités'); render(); return; }
+      const used = new Set(guests.filter(g => g.seat < v).map(g => g.seat));
+      guests.filter(g => g.seat >= v).forEach(g => { let k = 0; while (used.has(k)) k++; g.seat = k; used.add(k); });
+    }
+    t.cap = v; save(); render();
+  };
+  q('.dup').onclick = () => {
+    const c = { id: uid(), name: t.name + ' bis', cap: t.cap, shape: t.shape, w: t.w, h: t.h, x: Math.min(94, t.x + 6), y: Math.min(94, t.y + 8) };
+    state.tables.push(c); sel = { kind: 'table', id: c.id }; save(); render();
+  };
+  q('.del').onclick = () => {
+    if (guests.length && !confirm(`Supprimer ${t.name} ? Ses ${guests.length} invités reviendront dans la liste.`)) return;
+    guests.forEach(g => { g.table = null; g.seat = null; });
+    state.tables = state.tables.filter(x => x !== t); sel = null; save(); render();
+  };
+}
+
+$('guestForm').onsubmit = e => {
+  e.preventDefault();
+  const names = $('guestName').value.split(/[,;\n]+/).map(s => s.trim()).filter(Boolean);
+  names.forEach(n => state.guests.push({ id: uid(), name: n, table: null, menu: 'Non défini' }));
+  $('guestName').value = ''; save(); render();
+};
+$('search').oninput = render;
+$('addTable').onclick = () => {
+  const n = state.tables.length;
+  const t = { id: uid(), name: 'Table ' + (n + 1), cap: 8, shape: 'round', w: 100, h: 100, x: 15 + (n % 5) * 17, y: 20 + (Math.floor(n / 5) % 3) * 28 };
+  state.tables.push(t); sel = { kind: 'table', id: t.id }; save(); render();
+};
+const PRESETS = { 'Piste de danse': [170, 120], 'DJ': [110, 56], 'Buffet': [150, 46], 'Bar': [130, 44], 'Scène': [190, 72], 'Gâteau': [70, 40], 'Entrée': [100, 36] };
+$('addItem').onchange = e => {
+  let l = e.target.value, size = PRESETS[l]; e.target.value = '';
+  if (!l) return;
+  if (l === '*') {
+    l = (prompt('Nom de l\'élément (ex. Photobooth, Table des cadeaux)') || '').trim();
+    if (!l) return; size = [120, 60];
+  }
+  const it = { id: uid(), label: l, w: size[0], h: size[1], x: 50, y: 50 };
+  state.items.push(it); sel = { kind: 'item', id: it.id }; save(); render();
+};
+
+const gl = $('guestList');
+gl.addEventListener('dragover', e => { e.preventDefault(); gl.classList.add('over'); });
+gl.addEventListener('dragleave', () => gl.classList.remove('over'));
+gl.addEventListener('drop', e => { e.preventDefault(); gl.classList.remove('over'); assign(e.dataTransfer.getData('text/plain'), null); });
+
+const title = $('title'); title.textContent = state.title || 'Notre plan de table';
+title.onblur = () => { state.title = title.textContent.trim() || 'Notre plan de table'; document.title = state.title; save(); };
+title.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); title.blur(); } };
+document.title = state.title;
+
+$('exportBtn').onclick = () => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }));
+  a.download = 'plan-de-table.json'; a.click(); URL.revokeObjectURL(a.href);
+};
+$('importFile').onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const d = JSON.parse(r.result);
+      if (!Array.isArray(d.tables) || !Array.isArray(d.guests)) throw 0;
+      state = d; migrate(); title.textContent = state.title || 'Notre plan de table'; save(); render(); toast('Plan importé');
+    } catch (err) { toast('Fichier invalide'); }
+  };
+  r.readAsText(f); e.target.value = '';
+};
+$('printBtn').onclick = () => window.print();
+$('resetBtn').onclick = () => {
+  if (!confirm('Tout effacer et recommencer ?')) return;
+  state = { title: 'Notre plan de table', menuOptions: [...DEFAULT_MENUS], caterer: defaultCaterer(), dj: defaultDj(), tables: [], guests: [], items: [] };
+  title.textContent = state.title; save(); render();
+};
+render();
+</script>
+</body>
+</html>
