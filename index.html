@@ -69,8 +69,10 @@ form button{flex:none}
 .tbl,.item{position:absolute;transform:translate(-50%,-50%);touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
 .tbl.drag,.item.drag{cursor:grabbing;z-index:5;filter:drop-shadow(0 10px 14px rgba(31,58,51,.28))}
 .tbl .seats{margin:0}
-.tbl .seat.on{cursor:inherit}
+.tbl .seat.on{cursor:grab}
 .tbl .seat.on:hover{background:var(--blush);color:var(--forest)}
+.tbl .seat.hot{background:var(--gold);border-style:solid;border-color:var(--forest);color:#fff}
+.tbl .seat.on.sel{background:var(--gold);border-color:var(--forest);color:#fff}
 .tbl .disc{font-size:.9rem;line-height:1.1;padding:6px;text-align:center;box-shadow:0 0 0 0 transparent;transition:box-shadow .15s,background .2s}
 .tbl.full .disc{background:var(--forest)}
 .tbl.sel .disc{box-shadow:0 0 0 4px var(--gold)}
@@ -80,6 +82,9 @@ form button{flex:none}
 .detail{margin-top:14px;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:14px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .detail .tname{width:210px;flex:none;border:1px solid var(--line);background:var(--white)}
 .detail .names{width:100%;justify-content:flex-start;margin-top:4px}
+.detail .tcap input{width:64px}
+.detail input[type=color]{padding:0;height:32px;width:44px;border:1px solid var(--line);border-radius:8px;background:none;cursor:pointer}
+.detail .warn{font-size:.8rem;color:#a33;width:100%}
 .detail .del:hover{background:#a33;border-color:#a33}
 select{font:inherit;font-size:.9rem;border:1px solid var(--forest);background:transparent;color:var(--forest);padding:8px 12px;border-radius:999px;cursor:pointer}
 @media(max-width:860px){.room{aspect-ratio:3/4}}
@@ -104,6 +109,7 @@ select{font:inherit;font-size:.9rem;border:1px solid var(--forest);background:tr
     <select id="addItem" aria-label="Ajouter un élément à la salle">
       <option value="">Ajouter un élément</option>
       <option>Piste de danse</option><option>Buffet</option><option>Bar</option><option>Scène</option><option>Gâteau</option><option>Entrée</option>
+      <option value="*">Autre, nom libre…</option>
     </select>
     <button id="exportBtn">Exporter</button>
     <label class="btn" tabindex="0">Importer<input id="importFile" type="file" accept="application/json" hidden></label>
@@ -148,24 +154,38 @@ try { state = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
 if (!state || !state.tables) state = sample();
 function migrate() {
   state.items = state.items || [];
-  state.tables.forEach((t, i) => { if (t.x == null) { t.x = 18 + (i % 4) * 22; t.y = 22 + Math.floor(i / 4) * 30; } });
+  state.tables.forEach((t, i) => {
+    if (t.x == null) { t.x = 18 + (i % 4) * 22; t.y = 22 + Math.floor(i / 4) * 30; }
+    if (!t.shape) t.shape = 'round';
+    if (!t.w) t.w = Math.round(2 * (Math.max(60, t.cap * 30 / (2 * Math.PI)) - 22));
+    if (!t.h) t.h = t.w;
+    const gs = state.guests.filter(g => g.table === t.id);
+    const used = new Set(gs.filter(g => g.seat != null).map(g => g.seat));
+    gs.filter(g => g.seat == null).forEach(g => { let k = 0; while (used.has(k)) k++; g.seat = k; used.add(k); });
+  });
 }
 migrate();
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { toast('Sauvegarde impossible (image trop lourde ?). Pensez à exporter.'); } };
 const $ = id => document.getElementById(id);
 const initials = n => n.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
 const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 let toastT;
 function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2200); }
 
-function assign(gid, tid) {
+function assign(gid, tid, seat) {
   const g = state.guests.find(x => x.id === gid); if (!g) return;
-  if (tid) {
-    const t = state.tables.find(x => x.id === tid);
-    const n = state.guests.filter(x => x.table === tid && x.id !== gid).length;
-    if (n >= t.cap) { toast(t.name + ' est complète'); return; }
+  if (!tid) { g.table = null; g.seat = null; selected = null; save(); render(); return; }
+  const t = state.tables.find(x => x.id === tid);
+  const others = state.guests.filter(x => x.table === tid && x.id !== gid);
+  if (seat == null) {
+    const used = new Set(others.map(x => x.seat));
+    seat = [...Array(t.cap).keys()].find(i => !used.has(i));
+    if (seat == null) { toast(t.name + ' est complète'); return; }
+  } else {
+    const h = others.find(x => x.seat === seat);
+    if (h) { h.table = g.table; h.seat = g.table ? g.seat : null; } // échange, ou retour à la liste
   }
-  g.table = tid; selected = null; save(); render();
+  g.table = tid; g.seat = seat; selected = null; save(); render();
 }
 
 function chip(g, inTable) {
@@ -203,7 +223,25 @@ function render() {
 }
 
 let sel = null; // sélection dans la salle : { kind: 'table' | 'item', id }
-const radius = cap => Math.max(60, cap * 30 / (2 * Math.PI));
+const clamp = (v, a, b) => Math.max(a, Math.min(b, Math.round(v) || a));
+const tH = t => t.shape === 'rect' ? t.h : t.w;
+const OFF = 22; // distance entre le bord de la table et le centre d'un siège
+
+// position d'un siège (relative au centre de la table) : les sièges sont répartis sur le contour
+function seatPos(t, i) {
+  if (t.shape === 'round') {
+    const a = 2 * Math.PI * i / t.cap - Math.PI / 2, r = t.w / 2 + OFF;
+    return [r * Math.cos(a), r * Math.sin(a)];
+  }
+  const a = t.w / 2 + OFF, b = tH(t) / 2 + OFF;
+  let d = i * 4 * (a + b) / t.cap;
+  if (d < a) return [d, -b]; d -= a;
+  if (d < 2 * b) return [a, -b + d]; d -= 2 * b;
+  if (d < 2 * a) return [a - d, b]; d -= 2 * a;
+  if (d < 2 * b) return [-a, b - d]; d -= 2 * b;
+  return [-a + d, -b];
+}
+const seatGap = t => (t.shape === 'round' ? Math.PI * (t.w + 2 * OFF) : 2 * (t.w + tH(t) + 4 * OFF)) / t.cap;
 
 function renderRoom() {
   const rm = $('room'); rm.innerHTML = '';
@@ -211,40 +249,63 @@ function renderRoom() {
     const el = document.createElement('div');
     el.className = 'item' + (sel && sel.id === it.id ? ' sel' : '');
     el.style.cssText = `left:${it.x}%;top:${it.y}%;width:${it.w}px;height:${it.h}px`;
+    if (it.shape === 'ellipse') el.style.borderRadius = '50%';
+    if (/^#[0-9a-f]{6}$/i.test(it.color || '')) el.style.backgroundColor = it.color;
+    if ((it.bg || '').startsWith('data:image/')) {
+      el.style.backgroundImage = `url("${it.bg}")`;
+      el.style.backgroundSize = 'cover'; el.style.backgroundPosition = 'center';
+      el.style.color = '#fff'; el.style.textShadow = '0 1px 5px rgba(0,0,0,.7)';
+    }
     el.textContent = it.label;
     makeDraggable(el, it, 'item'); rm.appendChild(el);
   });
   state.tables.forEach(t => {
     const guests = state.guests.filter(g => g.table === t.id);
-    const r = radius(t.cap), box = 2 * (r + 16);
+    const W = t.w + 2 * (OFF + 15), H = tH(t) + 2 * (OFF + 15);
     const el = document.createElement('div');
     el.className = 'tbl' + (guests.length >= t.cap ? ' full' : '') + (sel && sel.id === t.id ? ' sel' : '');
     el.style.left = t.x + '%'; el.style.top = t.y + '%';
     const seats = document.createElement('div');
-    seats.className = 'seats'; seats.style.width = seats.style.height = box + 'px';
-    seats.innerHTML = `<div class="disc" style="inset:38px"><div>${esc(t.name)}<small>${guests.length}/${t.cap}</small></div></div>`;
+    seats.className = 'seats'; seats.style.width = W + 'px'; seats.style.height = H + 'px';
+    seats.innerHTML = `<div class="disc" style="inset:${OFF + 15}px;border-radius:${t.shape === 'round' ? '50%' : '16px'}"><div>${esc(t.name)}<small>${guests.length}/${t.cap}</small></div></div>`;
     for (let i = 0; i < t.cap; i++) {
-      const a = 2 * Math.PI * i / t.cap - Math.PI / 2;
+      const [x, y] = seatPos(t, i), g = guests.find(q => q.seat === i);
       const s = document.createElement('div');
-      s.className = 'seat' + (guests[i] ? ' on' : '');
-      s.style.left = (box / 2 + r * Math.cos(a)) + 'px'; s.style.top = (box / 2 + r * Math.sin(a)) + 'px';
-      if (guests[i]) { s.textContent = initials(guests[i].name); s.title = guests[i].name; }
+      s.className = 'seat' + (g ? ' on' : '') + (g && selected === g.id ? ' sel' : '');
+      s.dataset.i = i; s.style.left = (W / 2 + x) + 'px'; s.style.top = (H / 2 + y) + 'px';
+      if (g) {
+        s.textContent = initials(g.name); s.title = g.name; s.draggable = true;
+        s.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', g.id); e.dataTransfer.effectAllowed = 'move'; });
+        s.addEventListener('click', () => {
+          sel = { kind: 'table', id: t.id };
+          if (selected && selected !== g.id) assign(selected, t.id, i);
+          else { selected = selected === g.id ? null : g.id; render(); }
+        });
+      }
       seats.appendChild(s);
     }
     el.appendChild(seats);
     makeDraggable(el, t, 'table');
-    el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('over'); });
-    el.addEventListener('dragleave', () => el.classList.remove('over'));
-    el.addEventListener('drop', e => { e.preventDefault(); el.classList.remove('over'); assign(e.dataTransfer.getData('text/plain'), t.id); });
+    const seatOf = e => { const q = e.target.closest && e.target.closest('.seat'); return q ? +q.dataset.i : undefined; };
+    const clear = () => { el.classList.remove('over'); el.querySelectorAll('.seat.hot').forEach(x => x.classList.remove('hot')); };
+    el.addEventListener('dragover', e => {
+      e.preventDefault(); clear(); el.classList.add('over');
+      const i = seatOf(e); if (i != null) el.querySelector(`.seat[data-i="${i}"]`).classList.add('hot');
+    });
+    el.addEventListener('dragleave', clear);
+    el.addEventListener('drop', e => { e.preventDefault(); clear(); assign(e.dataTransfer.getData('text/plain'), t.id, seatOf(e)); });
     rm.appendChild(el);
   });
   renderDetail();
 }
 
-// déplacement à la souris ou au doigt ; un simple clic sélectionne
+// déplacement à la souris ou au doigt ; un simple clic sélectionne (ou assoit l'invité sélectionné)
 function makeDraggable(el, obj, kind) {
   el.addEventListener('pointerdown', e => {
     if (e.button) return;
+    const seatEl = e.target.closest && e.target.closest('.seat');
+    if (seatEl && seatEl.classList.contains('on')) return; // siège occupé : glisser-déposer d'invité
+    const seatIdx = seatEl ? +seatEl.dataset.i : undefined;
     const rect = $('room').getBoundingClientRect();
     const sx = e.clientX, sy = e.clientY, ox = obj.x, oy = obj.y;
     let moved = false;
@@ -257,15 +318,32 @@ function makeDraggable(el, obj, kind) {
       obj.y = Math.max(4, Math.min(96, oy + dy / rect.height * 100));
       el.style.left = obj.x + '%'; el.style.top = obj.y + '%';
     };
-    const up = () => {
+    const up = ev => {
       el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up);
+      if (ev.type === 'pointercancel') return;
       sel = { kind, id: obj.id };
       if (moved) { save(); render(); return; }
-      if (kind === 'table' && selected) { assign(selected, obj.id); return; }
+      if (kind === 'table' && selected) { assign(selected, obj.id, seatIdx); return; }
       render();
     };
     el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
   });
+}
+
+function readImage(file, cb) {
+  const r = new FileReader();
+  r.onload = () => {
+    const im = new Image();
+    im.onload = () => {
+      const k = Math.min(1, 700 / Math.max(im.width, im.height)), c = document.createElement('canvas');
+      c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+      cb(c.toDataURL('image/jpeg', .82));
+    };
+    im.onerror = () => toast('Image illisible');
+    im.src = r.result;
+  };
+  r.readAsDataURL(file);
 }
 
 function renderDetail() {
@@ -277,32 +355,60 @@ function renderDetail() {
     d.innerHTML = '<div class="empty">Touchez une table ou un élément pour le modifier. Faites-les glisser pour placer votre salle.</div>';
     return;
   }
+  const num = (c, label, v, min, max, step) => `<label class="tcap">${label} <input type="number" class="${c}" min="${min}" max="${max}" step="${step}" value="${v}"></label>`;
+  const q = c => d.querySelector(c);
   if (it) {
-    d.innerHTML = `<input class="tname" value="${esc(it.label)}" aria-label="Nom de l'élément"><button class="del">Supprimer</button>`;
-    d.querySelector('.tname').onchange = e => { it.label = e.target.value.trim() || 'Élément'; save(); render(); };
-    d.querySelector('.del').onclick = () => { state.items = state.items.filter(x => x !== it); sel = null; save(); render(); };
+    d.innerHTML = `<input class="tname" value="${esc(it.label)}" aria-label="Nom de l'élément">
+      ${num('iw', 'Largeur', it.w, 30, 600, 10)}${num('ih', 'Hauteur', it.h, 20, 500, 10)}
+      <label class="tcap">Forme <select class="ish"><option value="rect">Rectangle</option><option value="ellipse">Ovale</option></select></label>
+      <label class="tcap">Couleur <input type="color" class="ic" value="${/^#[0-9a-f]{6}$/i.test(it.color || '') ? it.color : '#f8ddd7'}"></label>
+      <label class="btn" tabindex="0">${it.bg ? 'Changer le fond' : 'Ajouter un fond'}<input type="file" class="ib" accept="image/*" hidden></label>
+      ${it.bg ? '<button class="nobg">Retirer le fond</button>' : ''}
+      <button class="del">Supprimer</button>`;
+    q('.ish').value = it.shape || 'rect';
+    q('.tname').onchange = e => { it.label = e.target.value.trim() || 'Élément'; save(); render(); };
+    q('.iw').onchange = e => { it.w = clamp(e.target.value, 30, 600); save(); render(); };
+    q('.ih').onchange = e => { it.h = clamp(e.target.value, 20, 500); save(); render(); };
+    q('.ish').onchange = e => { it.shape = e.target.value; save(); render(); };
+    q('.ic').onchange = e => { it.color = e.target.value; save(); render(); };
+    q('.ib').onchange = e => { const f = e.target.files[0]; if (f) readImage(f, url => { it.bg = url; save(); render(); }); };
+    if (q('.nobg')) q('.nobg').onclick = () => { delete it.bg; save(); render(); };
+    q('.del').onclick = () => { state.items = state.items.filter(x => x !== it); sel = null; save(); render(); };
     return;
   }
   const guests = state.guests.filter(g => g.table === t.id);
   d.innerHTML = `<input class="tname" value="${esc(t.name)}" aria-label="Nom de la table">
-    <label class="tcap">Places <input type="number" min="1" max="30" value="${t.cap}" aria-label="Nombre de places"></label>
-    <button class="dup">Dupliquer</button><button class="del">Supprimer</button><div class="names"></div>`;
-  const names = d.querySelector('.names');
+    <label class="tcap">Forme <select class="shape"><option value="round">Ronde</option><option value="square">Carrée</option><option value="rect">Rectangle</option></select></label>
+    ${num('tw', t.shape === 'round' ? 'Diamètre' : t.shape === 'square' ? 'Côté' : 'Longueur', t.w, 50, 400, 10)}
+    ${t.shape === 'rect' ? num('th', 'Largeur', t.h, 50, 400, 10) : ''}
+    ${num('cap', 'Places', t.cap, 1, 40, 1)}
+    <button class="dup">Dupliquer</button><button class="del">Supprimer</button>
+    ${seatGap(t) < 32 ? '<div class="warn">Les places sont serrées : agrandissez la table ou réduisez le nombre de places.</div>' : ''}
+    <div class="names"></div>`;
+  q('.shape').value = t.shape;
+  const names = q('.names');
   guests.forEach(g => names.appendChild(chip(g, true)));
-  if (!guests.length) names.innerHTML = '<div class="empty">Aucun invité. Glissez un invité sur la table pour l\'asseoir.</div>';
-  d.querySelector('.tname').onchange = e => { t.name = e.target.value.trim() || 'Table'; save(); render(); };
-  d.querySelector('input[type=number]').onchange = e => {
-    const v = Math.max(1, Math.min(30, +e.target.value || 1));
-    if (v < guests.length) toast('Retirez d\'abord des invités'); else t.cap = v;
-    save(); render();
+  if (!guests.length) names.innerHTML = '<div class="empty">Aucun invité. Glissez un invité sur une place de la table pour l\'asseoir.</div>';
+  q('.tname').onchange = e => { t.name = e.target.value.trim() || 'Table'; save(); render(); };
+  q('.shape').onchange = e => { t.shape = e.target.value; if (t.shape !== 'rect') t.h = t.w; save(); render(); };
+  q('.tw').onchange = e => { t.w = clamp(e.target.value, 50, 400); if (t.shape !== 'rect') t.h = t.w; save(); render(); };
+  if (q('.th')) q('.th').onchange = e => { t.h = clamp(e.target.value, 50, 400); save(); render(); };
+  q('.cap').onchange = e => {
+    const v = clamp(e.target.value, 1, 40);
+    if (v < t.cap) {
+      if (guests.length > v) { toast('Retirez d\'abord des invités'); render(); return; }
+      const used = new Set(guests.filter(g => g.seat < v).map(g => g.seat));
+      guests.filter(g => g.seat >= v).forEach(g => { let k = 0; while (used.has(k)) k++; g.seat = k; used.add(k); });
+    }
+    t.cap = v; save(); render();
   };
-  d.querySelector('.dup').onclick = () => {
-    const c = { id: uid(), name: t.name + ' bis', cap: t.cap, x: Math.min(94, t.x + 6), y: Math.min(94, t.y + 8) };
+  q('.dup').onclick = () => {
+    const c = { id: uid(), name: t.name + ' bis', cap: t.cap, shape: t.shape, w: t.w, h: t.h, x: Math.min(94, t.x + 6), y: Math.min(94, t.y + 8) };
     state.tables.push(c); sel = { kind: 'table', id: c.id }; save(); render();
   };
-  d.querySelector('.del').onclick = () => {
+  q('.del').onclick = () => {
     if (guests.length && !confirm(`Supprimer ${t.name} ? Ses ${guests.length} invités reviendront dans la liste.`)) return;
-    guests.forEach(g => g.table = null);
+    guests.forEach(g => { g.table = null; g.seat = null; });
     state.tables = state.tables.filter(x => x !== t); sel = null; save(); render();
   };
 }
@@ -317,14 +423,19 @@ $('guestForm').onsubmit = e => {
 $('search').oninput = render;
 $('addTable').onclick = () => {
   const n = state.tables.length;
-  const t = { id: uid(), name: 'Table ' + (n + 1), cap: 8, x: 15 + (n % 5) * 17, y: 20 + (Math.floor(n / 5) % 3) * 28 };
+  const t = { id: uid(), name: 'Table ' + (n + 1), cap: 8, shape: 'round', w: 100, h: 100, x: 15 + (n % 5) * 17, y: 20 + (Math.floor(n / 5) % 3) * 28 };
   state.tables.push(t); sel = { kind: 'table', id: t.id }; save(); render();
 };
 const PRESETS = { 'Piste de danse': [170, 120], 'Buffet': [150, 46], 'Bar': [130, 44], 'Scène': [190, 72], 'Gâteau': [70, 40], 'Entrée': [100, 36] };
 $('addItem').onchange = e => {
-  const l = e.target.value; if (!l) return;
-  const it = { id: uid(), label: l, w: PRESETS[l][0], h: PRESETS[l][1], x: 50, y: 50 };
-  state.items.push(it); sel = { kind: 'item', id: it.id }; e.target.value = ''; save(); render();
+  let l = e.target.value, size = PRESETS[l]; e.target.value = '';
+  if (!l) return;
+  if (l === '*') {
+    l = (prompt('Nom de l\'élément (ex. Photobooth, Table des cadeaux)') || '').trim();
+    if (!l) return; size = [120, 60];
+  }
+  const it = { id: uid(), label: l, w: size[0], h: size[1], x: 50, y: 50 };
+  state.items.push(it); sel = { kind: 'item', id: it.id }; save(); render();
 };
 
 // zone de dépôt « retirer de la table »
