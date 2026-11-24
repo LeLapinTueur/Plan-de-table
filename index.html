@@ -37,8 +37,8 @@ button.primary:hover{background:var(--forest-2)}
 main{display:grid;grid-template-columns:320px 1fr;gap:24px;padding:16px clamp(16px,4vw,48px) 48px;align-items:start}
 main.hidden{display:none}
 aside{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px;position:sticky;top:12px;max-height:calc(100vh - 24px);display:flex;flex-direction:column}
-aside h2,.room-head h2,.menus-panel h2,.dj-panel h2{font-family:var(--serif);font-size:1.6rem;margin:0 0 4px;font-weight:600}
-.menus-panel h3{font-family:var(--serif);font-size:1.25rem;margin:0;font-weight:600;color:var(--forest)}
+aside h2,.room-head h2,.menus-panel h2,.dj-panel h2,.dash-panel h2{font-family:var(--serif);font-size:1.6rem;margin:0 0 4px;font-weight:600}
+.menus-panel h3,.dash-panel h3{font-family:var(--serif);font-size:1.25rem;margin:0;font-weight:600;color:var(--forest)}
 .count{font-size:.85rem;color:var(--forest-2);margin:0 0 12px}
 .progress{height:4px;background:var(--line);border-radius:4px;overflow:hidden;margin-bottom:14px}
 .progress i{display:block;height:100%;background:var(--gold);transition:width .3s}
@@ -99,10 +99,37 @@ form button{flex:none}
 .detail .del:hover{background:#a33;border-color:#a33}
 select{font:inherit;font-size:.9rem;border:1px solid var(--forest);background:var(--white);color:var(--forest);padding:7px 12px;border-radius:999px;cursor:pointer}
 
-/* Onglets secondaires (Invités & Menus + DJ) */
-.menus-view,.dj-view{padding:16px clamp(16px,4vw,48px) 48px}
-.menus-view.hidden,.dj-view.hidden{display:none}
-.menus-panel,.dj-panel{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:22px}
+/* Onglets secondaires */
+.dash-view,.menus-view,.dj-view{padding:16px clamp(16px,4vw,48px) 48px}
+.dash-view.hidden,.menus-view.hidden,.dj-view.hidden{display:none}
+.dash-panel,.menus-panel,.dj-panel{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:22px}
+
+/* Tableau de bord avancement */
+.dash-top{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;margin-bottom:18px}
+.global-pct{display:flex;align-items:center;gap:12px;background:var(--white);border:1px solid var(--line);border-radius:999px;padding:8px 16px}
+.global-pct strong{font-size:1.25rem;color:var(--forest)}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:22px}
+.kpi-card{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.kpi-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.kpi-pct{font-family:var(--serif);font-size:1.7rem;font-weight:600;color:var(--forest)}
+.kpi-bar{height:7px;background:var(--bg);border-radius:999px;overflow:hidden}
+.kpi-bar i{display:block;height:100%;background:var(--gold);transition:width .25s}
+.kpi-bar i.done{background:var(--forest-2)}
+.kpi-meta{font-size:.84rem;color:var(--forest-2)}
+.pill-state{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:.78rem;font-weight:500;width:fit-content}
+.pill-state.todo{background:#fbe9e6;color:#933224}
+.pill-state.wip{background:var(--blush-2);color:var(--forest)}
+.pill-state.done{background:#dfece6;color:var(--forest)}
+.kpi-card .btn-link{align-self:flex-start;padding:5px 12px;font-size:.82rem}
+
+.todo-box{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:18px}
+.todo-box h3{margin-bottom:12px}
+.todo-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.todo-item{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-size:.9rem}
+.todo-left{display:flex;align-items:center;gap:10px}
+.todo-cat{font-size:.75rem;font-weight:500;background:var(--white);border:1px solid var(--line);padding:2px 9px;border-radius:999px;color:var(--forest-2)}
+.todo-done-msg{background:#dfece6;border:1px solid #b8d1c5;border-radius:12px;padding:12px 16px;font-size:.92rem;color:var(--forest)}
+
 .menus-top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px}
 .caterer-box{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:18px}
 .caterer-head{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
@@ -142,7 +169,7 @@ table.guest-menus tr:hover td{background:#fafcf9}
 .hover-tip small{display:block;color:var(--blush);font-size:.76rem;margin-top:2px}
 
 @media(max-width:860px){.room{aspect-ratio:3/4} main{grid-template-columns:1fr}aside{position:static;max-height:none}#guestList{max-height:260px}}
-@media print{.detail,.tabs-wrap,.menus-view,.dj-view,.hover-tip{display:none!important}.room{break-inside:avoid}body{background:#fff}aside,.bar,form,.tdel,.tcap,.hint,.toast{display:none!important}main{display:block}}
+@media print{.detail,.tabs-wrap,.dash-view,.menus-view,.dj-view,.hover-tip{display:none!important}.room{break-inside:avoid}body{background:#fff}aside,.bar,form,.tdel,.tcap,.hint,.toast{display:none!important}main{display:block}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:var(--forest);color:var(--white);padding:10px 18px;border-radius:999px;
   font-size:.9rem;opacity:0;pointer-events:none;transition:all .25s;z-index:40}
@@ -170,12 +197,35 @@ table.guest-menus tr:hover td{background:#fafcf9}
 </header>
 
 <nav class="tabs-wrap" aria-label="Navigation principale">
-  <button class="tab-btn active" data-tab="room" id="tabRoomBtn">Plan de salle</button>
-  <button class="tab-btn" data-tab="menus" id="tabMenusBtn">Invités &amp; Menus</button>
+  <button class="tab-btn active" data-tab="dashboard" id="tabDashBtn">Avancement</button>
+  <button class="tab-btn" data-tab="room" id="tabRoomBtn">Plan de salle</button>
+  <button class="tab-btn" data-tab="menus" id="tabMenusBtn">Traiteur, Invités &amp; Menus</button>
   <button class="tab-btn" data-tab="dj" id="tabDjBtn">DJ &amp; Animation</button>
 </nav>
 
-<main id="roomView">
+<section class="dash-view" id="dashView" aria-label="Tableau de bord d'avancement">
+  <div class="dash-panel">
+    <div class="dash-top">
+      <div>
+        <h2>Tableau de bord &amp; avancement</h2>
+        <p class="count" style="margin:0">Suivez ce qui est prêt, l'état des paiements et ce qu'il reste à faire.</p>
+      </div>
+      <div class="global-pct">
+        <span>Avancement global :</span>
+        <strong id="globalPct">0%</strong>
+      </div>
+    </div>
+
+    <div class="kpi-grid" id="kpiGrid"></div>
+
+    <div class="todo-box">
+      <h3>Ce qu'il reste à faire</h3>
+      <ul class="todo-list" id="todoList"></ul>
+    </div>
+  </div>
+</section>
+
+<main id="roomView" class="hidden">
   <aside>
     <h2>Invités</h2>
     <p class="count" id="count"></p>
@@ -195,7 +245,7 @@ table.guest-menus tr:hover td{background:#fafcf9}
   </section>
 </main>
 
-<section class="menus-view hidden" id="menusView" aria-label="Gestion des invités et menus">
+<section class="menus-view hidden" id="menusView" aria-label="Gestion du traiteur, des invités et des menus">
   <div class="menus-panel">
     <div class="menus-top">
       <div>
@@ -427,7 +477,7 @@ const sample = () => ({
     .map((n, idx) => ({ id: uid(), name: n, table: null, menu: DEFAULT_MENUS[(idx % 4) + 1] })),
   items: [{ id: uid(), label: 'Piste de danse', w: 170, h: 120, x: 50, y: 76 }, { id: uid(), label: 'Entrée', w: 100, h: 36, x: 50, y: 94 }]
 });
-let state, selected = null, activeTab = 'room';
+let state, selected = null, activeTab = 'dashboard';
 try { state = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
 if (!state || !state.tables) state = sample();
 function migrate() {
@@ -459,6 +509,7 @@ const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } c
 const $ = id => document.getElementById(id);
 const initials = n => n.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const fmtEur = v => `${Math.max(0, Math.round(v)).toLocaleString('fr-FR')} €`;
 let toastT;
 function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2200); }
 
@@ -518,505 +569,71 @@ function attachDjHover(el) {
 
 function setTab(tab) {
   activeTab = tab;
-  $('roomView').classList.toggle('hidden', tab !== 'room');
-  $('menusView').classList.toggle('hidden', tab !== 'menus');
-  $('djView').classList.toggle('hidden', tab !== 'dj');
-  $('tabRoomBtn').classList.toggle('active', tab === 'room');
-  $('tabMenusBtn').classList.toggle('active', tab === 'menus');
-  $('tabDjBtn').classList.toggle('active', tab === 'dj');
+  $('dashView').classList.toggle('hidden', tab !== 'dashboard');$('roomView').classList.toggle('hidden', tab !== 'room');
+  $('menusView').classList.toggle('hidden', tab !== 'menus');$('djView').classList.toggle('hidden', tab !== 'dj');
+  $('tabDashBtn').classList.toggle('active', tab === 'dashboard');$('tabRoomBtn').classList.toggle('active', tab === 'room');
+  $('tabMenusBtn').classList.toggle('active', tab === 'menus');$('tabDjBtn').classList.toggle('active', tab === 'dj');
   hideGuestTip();
+  if (tab === 'dashboard') renderDashboard();
   if (tab === 'menus') renderMenusView();
   if (tab === 'dj') renderDjView();
 }
-$('tabRoomBtn').onclick = () => setTab('room');
-$('tabMenusBtn').onclick = () => setTab('menus');
-$('tabDjBtn').onclick = () => setTab('dj');
+$('tabDashBtn').onclick = () => setTab('dashboard');$('tabRoomBtn').onclick = () => setTab('room');
+$('tabMenusBtn').onclick = () => setTab('menus');$('tabDjBtn').onclick = () => setTab('dj');
 
-function assign(gid, tid, seat) {
-  const g = state.guests.find(x => x.id === gid); if (!g) return;
-  if (!tid) { g.table = null; g.seat = null; selected = null; save(); render(); return; }
-  const t = state.tables.find(x => x.id === tid);
-  const others = state.guests.filter(x => x.table === tid && x.id !== gid);
-  if (seat == null) {
-    const used = new Set(others.map(x => x.seat));
-    seat = [...Array(t.cap).keys()].find(i => !used.has(i));
-    if (seat == null) { toast(t.name + ' est complète'); return; }
-  } else {
-    const h = others.find(x => x.seat === seat);
-    if (h) { h.table = g.table; h.seat = g.table ? g.seat : null; }
-  }
-  g.table = tid; g.seat = seat; selected = null; save(); render();
-}
+function computeProgress() {
+  const guests = state.guests || [];
+  const totalGuests = guests.length;
+  const placedGuests = guests.filter(g => g.table).length;
+  const unplacedNames = guests.filter(g => !g.table).map(g => g.name);
+  const totalSeats = (state.tables || []).reduce((a, t) => a + (t.cap || 0), 0);
 
-function chip(g, inTable) {
-  const el = document.createElement('div');
-  el.className = 'chip' + (selected === g.id ? ' sel' : '');
-  el.draggable = true; el.tabIndex = 0;
-  const menuBadge = g.menu && g.menu !== 'Non défini' ? `<span class="menu-tag">${esc(g.menu)}</span>` : '';
-  el.innerHTML = `<span>${esc(g.name)}</span>${menuBadge}<button class="x" aria-label="${inTable ? 'Retirer de la table' : 'Supprimer'} ${esc(g.name)}">${inTable ? '↩' : '×'}</button>`;
-  if (inTable) attachGuestHover(el, g);
-  el.addEventListener('dragstart', e => { hideGuestTip(); e.dataTransfer.setData('text/plain', g.id); e.dataTransfer.effectAllowed = 'move'; });
-  el.addEventListener('click', e => {
-    if (e.target.closest('.x')) {
-      hideGuestTip();
-      if (inTable) assign(g.id, null);
-      else { state.guests = state.guests.filter(x => x.id !== g.id); save(); render(); }
-      return;
-    }
-    selected = selected === g.id ? null : g.id; render();
-  });
-  el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); } });
-  return el;
-}
+  // 1. Placement de table
+  const seatingPct = totalGuests === 0 ? 0 : Math.round((placedGuests / totalGuests) * 100);
+  const seatingBadge = totalGuests === 0
+    ? { cls: 'todo', label: 'Aucun invité' }
+    : placedGuests === totalGuests
+      ? { cls: 'done', label: 'Complet' }
+      : placedGuests > 0
+        ? { cls: 'wip', label: 'En cours' }
+        : { cls: 'todo', label: 'Pas fait' };
 
-function render() {
-  const q = $('search').value.trim().toLowerCase();
-  const free = state.guests.filter(g => !g.table && g.name.toLowerCase().includes(q));
-  const list = $('guestList'); list.innerHTML = '';
-  free.forEach(g => list.appendChild(chip(g, false)));
-  if (!free.length) list.innerHTML = `<div class="empty">${state.guests.length && !q ? 'Tout le monde est placé 🎉' : q ? 'Aucun résultat.' : 'Ajoutez votre premier invité ci-dessus.'}</div>`;
-  const placed = state.guests.filter(g => g.table).length, total = state.guests.length;
-  $('count').textContent = `${placed} placés sur ${total} · ${total - placed} à placer`;
-  $('bar').style.width = total ? (placed / total * 100) + '%' : '0%';
-  const seats = state.tables.reduce((a, t) => a + t.cap, 0);
-  $('seatInfo').textContent = `${state.tables.length} tables · ${seats} places`;
+  // 2. Menus des invités
+  const definedMenus = guests.filter(g => g.menu && g.menu !== 'Non défini').length;
+  const undefinedMenuGuests = guests.filter(g => !g.menu || g.menu === 'Non défini');
+  const menusPct = totalGuests === 0 ? 0 : Math.round((definedMenus / totalGuests) * 100);
+  const menusBadge = totalGuests === 0
+    ? { cls: 'todo', label: 'Aucun invité' }
+    : definedMenus === totalGuests
+      ? { cls: 'done', label: 'Complet' }
+      : definedMenus > 0
+        ? { cls: 'wip', label: 'En cours' }
+        : { cls: 'todo', label: 'Pas fait' };
 
-  renderRoom();
-  if (activeTab === 'menus') renderMenusView();
-  if (activeTab === 'dj') renderDjView();
-}
+  // 3. Traiteur
+  const cat = state.caterer || defaultCaterer();
+  const catHasName = Boolean((cat.name || '').trim());
+  const catPpg = parseFloat(cat.pricePerGuest) || 0;
+  const catExtra = parseFloat(cat.extraFee) || 0;
+  const catDeposit = parseFloat(cat.deposit) || 0;
+  const catTotal = totalGuests * catPpg + catExtra;
+  const catRest = Math.max(0, catTotal - catDeposit);
+  const catBooked = cat.status === 'Devis validé / Contrat signé' || cat.status === 'Confirmé';
 
-// Gestion du traiteur dans la partie Menus
-const CATERER_FIELDS = [
-  ['catererName', 'name'],
-  ['catererStatus', 'status'],
-  ['catererPhone', 'phone'],
-  ['catererEmail', 'email'],
-  ['catererPricePerGuest', 'pricePerGuest'],
-  ['catererExtraFee', 'extraFee'],
-  ['catererDeposit', 'deposit'],
-  ['catererNotes', 'notes']
-];
+  let catPaymentState = 'Pas payé';
+  if (catTotal <= 0 && catDeposit <= 0) catPaymentState = 'Tarif non défini';
+  else if (catDeposit <= 0) catPaymentState = `Non payé (${fmtEur(catTotal)} à régler)`;
+  else if (catRest > 0) catPaymentState = `Acompte ${fmtEur(catDeposit)} versé · Reste ${fmtEur(catRest)}`;
+  else catPaymentState = `Soldé (${fmtEur(catTotal)})`;
 
-function updateCatererSummaryUI() {
-  const cat = state.caterer;
-  const badge = $('catererStatusBadge');
-  badge.textContent = cat.status || 'Devis en cours';
-  badge.classList.toggle('ok', cat.status === 'Confirmé' || cat.status === 'Devis validé / Contrat signé');
-
-  const guestsCount = state.guests.length;
-  const ppg = parseFloat(cat.pricePerGuest) || 0;
-  const extra = parseFloat(cat.extraFee) || 0;
-  const deposit = parseFloat(cat.deposit) || 0;
-  const total = guestsCount * ppg + extra;
-  const rest = Math.max(0, total - deposit);
-
-  $('catererTotalText').textContent = `Total estimé (${guestsCount} inv.) : ${total.toLocaleString('fr-FR')} €`;
-  $('catererBalance').textContent = `Reste : ${rest.toLocaleString('fr-FR')} €`;
-}
-
-function renderCatererFields() {
-  CATERER_FIELDS.forEach(([elId, key]) => {
-    const el = $(elId);
-    if (el) el.value = state.caterer[key] ?? '';
-  });
-  updateCatererSummaryUI();
-}
-
-CATERER_FIELDS.forEach(([elId, key]) => {
-  const el = $(elId);
-  if (!el) return;
-  const evt = el.tagName === 'SELECT' ? 'change' : 'input';
-  el.addEventListener(evt, () => {
-    state.caterer[key] = el.value;
-    save();
-    updateCatererSummaryUI();
-  });
-});
-
-function renderMenusView() {
-  renderCatererFields();
-
-  const filterSel = $('menuFilter');
-  const currentFilter = filterSel.value;
-  filterSel.innerHTML = `<option value="">Tous les menus</option>` +
-    state.menuOptions.map(m => `<option value="${esc(m)}">${esc(m)}</option>`).join('');
-  if (state.menuOptions.includes(currentFilter)) filterSel.value = currentFilter;
-
-  const summary = $('menuSummary');
-  summary.innerHTML = '';
-  state.menuOptions.forEach(m => {
-    const c = state.guests.filter(g => (g.menu || 'Non défini') === m).length;
-    const pill = document.createElement('span');
-    pill.className = 'summary-pill';
-    pill.innerHTML = `<strong>${c}</strong> · ${esc(m)}` +
-      (m !== 'Non défini' ? `<button type="button" class="rm-menu" title="Retirer le menu ${esc(m)}" aria-label="Retirer le menu ${esc(m)}">×</button>` : '');
-    const rmBtn = pill.querySelector('.rm-menu');
-    if (rmBtn) rmBtn.onclick = () => removeMenuOption(m);
-    summary.appendChild(pill);
-  });
-
-  const q = $('menuSearch').value.trim().toLowerCase();
-  const f = filterSel.value;
-  const rows = state.guests.filter(g => {
-    const tbl = state.tables.find(t => t.id === g.table);
-    const matchText = !q || g.name.toLowerCase().includes(q) || (tbl && tbl.name.toLowerCase().includes(q)) || (g.menu || '').toLowerCase().includes(q);
-    const matchMenu = !f || (g.menu || 'Non défini') === f;
-    return matchText && matchMenu;
-  });
-
-  $('menusCount').textContent = `${state.guests.length} invité(s) au total · ${rows.length} affiché(s)`;
-  const tbody = $('guestMenusBody');
-  tbody.innerHTML = '';
-
-  if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="4" class="empty">Aucun invité à afficher.</td></tr>`;
-    return;
-  }
-
-  rows.forEach(g => {
-    const tbl = state.tables.find(t => t.id === g.table);
-    const tr = document.createElement('tr');
-    const optsHtml = state.menuOptions.map(m =>
-      `<option value="${esc(m)}" ${(g.menu || 'Non défini') === m ? 'selected' : ''}>${esc(m)}</option>`
-    ).join('');
-    tr.innerHTML = `
-      <td><strong>${esc(g.name)}</strong></td>
-      <td>${tbl ? `<span class="badge-placed">${esc(tbl.name)}</span>` : `<span class="badge-unplaced">Non placé</span>`}</td>
-      <td><select aria-label="Menu de ${esc(g.name)}">${optsHtml}</select></td>
-      <td><button type="button" class="del-guest">Supprimer</button></td>
-    `;
-    tr.querySelector('select').onchange = e => {
-      g.menu = e.target.value;
-      save();
-      render();
-      toast(`Menu de ${g.name} : ${g.menu}`);
-    };
-    tr.querySelector('.del-guest').onclick = () => {
-      state.guests = state.guests.filter(x => x.id !== g.id);
-      if (selected === g.id) selected = null;
-      save();
-      render();
-    };
-    tbody.appendChild(tr);
-  });
-}
-
-// Gestion de l'onglet DJ
-const DJ_FIELDS = [
-  ['djName', 'name'],
-  ['djPhone', 'phone'],
-  ['djEmail', 'email'],
-  ['djSocial', 'social'],
-  ['djStatus', 'status'],
-  ['djDate', 'date'],
-  ['djSetupTime', 'setupTime'],
-  ['djHours', 'hours'],
-  ['djPrice', 'price'],
-  ['djDeposit', 'deposit'],
-  ['djEquipment', 'equipment'],
-  ['djKeySongs', 'keySongs'],
-  ['djNotes', 'notes']
-];
-
-function updateDjSummaryUI() {
-  const dj = state.dj;
-  const badge = $('djStatusBadge');
-  badge.textContent = dj.status || 'À contacter';
-  badge.classList.toggle('ok', dj.status === 'Confirmé / Réservé');
-
-  const price = parseFloat(dj.price) || 0;
-  const deposit = parseFloat(dj.deposit) || 0;
-  const rest = Math.max(0, price - deposit);
-  $('djBalance').textContent = `${rest.toLocaleString('fr-FR')} €`;
-}
-
-function renderDjView() {
-  DJ_FIELDS.forEach(([elId, key]) => {
-    const el = $(elId);
-    if (el) el.value = state.dj[key] ?? '';
-  });
-  updateDjSummaryUI();
-}
-
-DJ_FIELDS.forEach(([elId, key]) => {
-  const el = $(elId);
-  if (!el) return;
-  const evt = el.tagName === 'SELECT' ? 'change' : 'input';
-  el.addEventListener(evt, () => {
-    state.dj[key] = el.value;
-    save();
-    updateDjSummaryUI();
-  });
-});
-
-$('addMenuTypeBtn').onclick = () => {
-  const inp = $('newMenuName');
-  const val = inp.value.trim();
-  if (!val) return;
-  if (!state.menuOptions.includes(val)) {
-    state.menuOptions.push(val);
-    save();
-    renderMenusView();
-    toast(`Menu « ${val} » ajouté`);
-  }
-  inp.value = '';
-};
-$('newMenuName').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $('addMenuTypeBtn').click(); } };
-$('menuSearch').oninput = renderMenusView;
-$('menuFilter').onchange = renderMenusView;
-
-let sel = null;
-const clamp = (v, a, b) => Math.max(a, Math.min(b, Math.round(v) || a));
-const tH = t => t.shape === 'rect' ? t.h : t.w;
-const OFF = 22;
-
-function seatPos(t, i) {
-  if (t.shape === 'round') {
-    const a = 2 * Math.PI * i / t.cap - Math.PI / 2, r = t.w / 2 + OFF;
-    return [r * Math.cos(a), r * Math.sin(a)];
-  }
-  const a = t.w / 2 + OFF, b = tH(t) / 2 + OFF;
-  let d = i * 4 * (a + b) / t.cap;
-  if (d < a) return [d, -b]; d -= a;
-  if (d < 2 * b) return [a, -b + d]; d -= 2 * b;
-  if (d < 2 * a) return [a - d, b]; d -= 2 * a;
-  if (d < 2 * b) return [-a, b - d]; d -= 2 * b;
-  return [-a + d, -b];
-}
-const seatGap = t => (t.shape === 'round' ? Math.PI * (t.w + 2 * OFF) : 2 * (t.w + tH(t) + 4 * OFF)) / t.cap;
-
-function renderRoom() {
-  const rm = $('room'); rm.innerHTML = '';
-  state.items.forEach(it => {
-    const el = document.createElement('div');
-    el.className = 'item' + (sel && sel.id === it.id ? ' sel' : '');
-    el.style.cssText = `left:${it.x}%;top:${it.y}%;width:${it.w}px;height:${it.h}px`;
-    if (it.shape === 'ellipse') el.style.borderRadius = '50%';
-    if (/^#[0-9a-f]{6}$/i.test(it.color || '')) el.style.backgroundColor = it.color;
-    if ((it.bg || '').startsWith('data:image/')) {
-      el.style.backgroundImage = `url("${it.bg}")`;
-      el.style.backgroundSize = 'cover'; el.style.backgroundPosition = 'center';
-      el.style.color = '#fff'; el.style.textShadow = '0 1px 5px rgba(0,0,0,.7)';
-    }
-    el.textContent = it.label;
-    if (/^dj\b/i.test(it.label.trim())) attachDjHover(el);
-    makeDraggable(el, it, 'item'); rm.appendChild(el);
-  });
-  state.tables.forEach(t => {
-    const guests = state.guests.filter(g => g.table === t.id);
-    const W = t.w + 2 * (OFF + 15), H = tH(t) + 2 * (OFF + 15);
-    const el = document.createElement('div');
-    el.className = 'tbl' + (guests.length >= t.cap ? ' full' : '') + (sel && sel.id === t.id ? ' sel' : '');
-    el.style.left = t.x + '%'; el.style.top = t.y + '%';
-    const seats = document.createElement('div');
-    seats.className = 'seats'; seats.style.width = W + 'px'; seats.style.height = H + 'px';
-    seats.innerHTML = `<div class="disc" style="inset:${OFF + 15}px;border-radius:${t.shape === 'round' ? '50%' : '16px'}"><div>${esc(t.name)}<small>${guests.length}/${t.cap}</small></div></div>`;
-    for (let i = 0; i < t.cap; i++) {
-      const [x, y] = seatPos(t, i), g = guests.find(q => q.seat === i);
-      const s = document.createElement('div');
-      s.className = 'seat' + (g ? ' on' : '') + (g && selected === g.id ? ' sel' : '');
-      s.dataset.i = i; s.style.left = (W / 2 + x) + 'px'; s.style.top = (H / 2 + y) + 'px';
-      if (g) {
-        s.textContent = initials(g.name);
-        s.title = `${g.name} — Menu : ${g.menu || 'Non défini'}`;
-        s.draggable = true;
-        attachGuestHover(s, g);
-        s.addEventListener('dragstart', e => { hideGuestTip(); e.dataTransfer.setData('text/plain', g.id); e.dataTransfer.effectAllowed = 'move'; });
-        s.addEventListener('click', () => {
-          sel = { kind: 'table', id: t.id };
-          if (selected && selected !== g.id) assign(selected, t.id, i);
-          else { selected = selected === g.id ? null : g.id; render(); }
-        });
-      }
-      seats.appendChild(s);
-    }
-    el.appendChild(seats);
-    makeDraggable(el, t, 'table');
-    const seatOf = e => { const q = e.target.closest && e.target.closest('.seat'); return q ? +q.dataset.i : undefined; };
-    const clear = () => { el.classList.remove('over'); el.querySelectorAll('.seat.hot').forEach(x => x.classList.remove('hot')); };
-    el.addEventListener('dragover', e => {
-      e.preventDefault(); clear(); el.classList.add('over');
-      const i = seatOf(e); if (i != null) el.querySelector(`.seat[data-i="${i}"]`).classList.add('hot');
-    });
-    el.addEventListener('dragleave', clear);
-    el.addEventListener('drop', e => { e.preventDefault(); clear(); assign(e.dataTransfer.getData('text/plain'), t.id, seatOf(e)); });
-    rm.appendChild(el);
-  });
-  renderDetail();
-}
-
-function makeDraggable(el, obj, kind) {
-  el.addEventListener('pointerdown', e => {
-    if (e.button) return;
-    const seatEl = e.target.closest && e.target.closest('.seat');
-    if (seatEl && seatEl.classList.contains('on')) return;
-    const seatIdx = seatEl ? +seatEl.dataset.i : undefined;
-    const rect = $('room').getBoundingClientRect();
-    const sx = e.clientX, sy = e.clientY, ox = obj.x, oy = obj.y;
-    let moved = false;
-    el.setPointerCapture(e.pointerId);
-    const move = ev => {
-      const dx = ev.clientX - sx, dy = ev.clientY - sy;
-      if (!moved && Math.hypot(dx, dy) < 5) return;
-      moved = true; el.classList.add('drag');
-      obj.x = Math.max(4, Math.min(96, ox + dx / rect.width * 100));
-      obj.y = Math.max(4, Math.min(96, oy + dy / rect.height * 100));
-      el.style.left = obj.x + '%'; el.style.top = obj.y + '%';
-    };
-    const up = ev => {
-      el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up);
-      if (ev.type === 'pointercancel') return;
-      sel = { kind, id: obj.id };
-      if (moved) { save(); render(); return; }
-      if (kind === 'table' && selected) { assign(selected, obj.id, seatIdx); return; }
-      render();
-    };
-    el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
-  });
-}
-
-function readImage(file, cb) {
-  const r = new FileReader();
-  r.onload = () => {
-    const im = new Image();
-    im.onload = () => {
-      const k = Math.min(1, 700 / Math.max(im.width, im.height)), c = document.createElement('canvas');
-      c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
-      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
-      cb(c.toDataURL('image/jpeg', .82));
-    };
-    im.onerror = () => toast('Image illisible');
-    im.src = r.result;
-  };
-  r.readAsDataURL(file);
-}
-
-function renderDetail() {
-  const d = $('detail');
-  const t = sel && sel.kind === 'table' && state.tables.find(x => x.id === sel.id);
-  const it = sel && sel.kind === 'item' && state.items.find(x => x.id === sel.id);
-  if (!t && !it) {
-    sel = null;
-    d.innerHTML = '<div class="empty">Touchez une table ou un élément pour le modifier. Survolez un invité de la table pour voir son menu.</div>';
-    return;
-  }
-  const num = (c, label, v, min, max, step) => `<label class="tcap">${label} <input type="number" class="${c}" min="${min}" max="${max}" step="${step}" value="${v}"></label>`;
-  const q = c => d.querySelector(c);
-  if (it) {
-    d.innerHTML = `<input class="tname" value="${esc(it.label)}" aria-label="Nom de l'élément">
-      ${num('iw', 'Largeur', it.w, 30, 600, 10)}${num('ih', 'Hauteur', it.h, 20, 500, 10)}
-      <label class="tcap">Forme <select class="ish"><option value="rect">Rectangle</option><option value="ellipse">Ovale</option></select></label>
-      <label class="tcap">Couleur <input type="color" class="ic" value="${/^#[0-9a-f]{6}$/i.test(it.color || '') ? it.color : '#f8ddd7'}"></label>
-      <label class="btn" tabindex="0">${it.bg ? 'Changer le fond' : 'Ajouter un fond'}<input type="file" class="ib" accept="image/*" hidden></label>
-      ${it.bg ? '<button class="nobg">Retirer le fond</button>' : ''}
-      <button class="del">Supprimer</button>`;
-    q('.ish').value = it.shape || 'rect';
-    q('.tname').onchange = e => { it.label = e.target.value.trim() || 'Élément'; save(); render(); };
-    q('.iw').onchange = e => { it.w = clamp(e.target.value, 30, 600); save(); render(); };
-    q('.ih').onchange = e => { it.h = clamp(e.target.value, 20, 500); save(); render(); };
-    q('.ish').onchange = e => { it.shape = e.target.value; save(); render(); };
-    q('.ic').onchange = e => { it.color = e.target.value; save(); render(); };
-    q('.ib').onchange = e => { const f = e.target.files[0]; if (f) readImage(f, url => { it.bg = url; save(); render(); }); };
-    if (q('.nobg')) q('.nobg').onclick = () => { delete it.bg; save(); render(); };
-    q('.del').onclick = () => { state.items = state.items.filter(x => x !== it); sel = null; save(); render(); };
-    return;
-  }
-  const guests = state.guests.filter(g => g.table === t.id);
-  d.innerHTML = `<input class="tname" value="${esc(t.name)}" aria-label="Nom de la table">
-    <label class="tcap">Forme <select class="shape"><option value="round">Ronde</option><option value="square">Carrée</option><option value="rect">Rectangle</option></select></label>
-    ${num('tw', t.shape === 'round' ? 'Diamètre' : t.shape === 'square' ? 'Côté' : 'Longueur', t.w, 50, 400, 10)}
-    ${t.shape === 'rect' ? num('th', 'Largeur', t.h, 50, 400, 10) : ''}
-    ${num('cap', 'Places', t.cap, 1, 40, 1)}
-    <button class="dup">Dupliquer</button><button class="del">Supprimer</button>
-    ${seatGap(t) < 32 ? '<div class="warn">Les places sont serrées : agrandissez la table ou réduisez le nombre de places.</div>' : ''}
-    <div class="names"></div>`;
-  q('.shape').value = t.shape;
-  const names = q('.names');
-  guests.forEach(g => names.appendChild(chip(g, true)));
-  if (!guests.length) names.innerHTML = '<div class="empty">Aucun invité. Glissez un invité sur une place de la table pour l\'asseoir.</div>';
-  q('.tname').onchange = e => { t.name = e.target.value.trim() || 'Table'; save(); render(); };
-  q('.shape').onchange = e => { t.shape = e.target.value; if (t.shape !== 'rect') t.h = t.w; save(); render(); };
-  q('.tw').onchange = e => { t.w = clamp(e.target.value, 50, 400); if (t.shape !== 'rect') t.h = t.w; save(); render(); };
-  if (q('.th')) q('.th').onchange = e => { t.h = clamp(e.target.value, 50, 400); save(); render(); };
-  q('.cap').onchange = e => {
-    const v = clamp(e.target.value, 1, 40);
-    if (v < t.cap) {
-      if (guests.length > v) { toast('Retirez d\'abord des invités'); render(); return; }
-      const used = new Set(guests.filter(g => g.seat < v).map(g => g.seat));
-      guests.filter(g => g.seat >= v).forEach(g => { let k = 0; while (used.has(k)) k++; g.seat = k; used.add(k); });
-    }
-    t.cap = v; save(); render();
-  };
-  q('.dup').onclick = () => {
-    const c = { id: uid(), name: t.name + ' bis', cap: t.cap, shape: t.shape, w: t.w, h: t.h, x: Math.min(94, t.x + 6), y: Math.min(94, t.y + 8) };
-    state.tables.push(c); sel = { kind: 'table', id: c.id }; save(); render();
-  };
-  q('.del').onclick = () => {
-    if (guests.length && !confirm(`Supprimer ${t.name} ? Ses ${guests.length} invités reviendront dans la liste.`)) return;
-    guests.forEach(g => { g.table = null; g.seat = null; });
-    state.tables = state.tables.filter(x => x !== t); sel = null; save(); render();
-  };
-}
-
-$('guestForm').onsubmit = e => {
-  e.preventDefault();
-  const names = $('guestName').value.split(/[,;\n]+/).map(s => s.trim()).filter(Boolean);
-  names.forEach(n => state.guests.push({ id: uid(), name: n, table: null, menu: 'Non défini' }));
-  $('guestName').value = ''; save(); render();
-};
-$('search').oninput = render;
-$('addTable').onclick = () => {
-  const n = state.tables.length;
-  const t = { id: uid(), name: 'Table ' + (n + 1), cap: 8, shape: 'round', w: 100, h: 100, x: 15 + (n % 5) * 17, y: 20 + (Math.floor(n / 5) % 3) * 28 };
-  state.tables.push(t); sel = { kind: 'table', id: t.id }; save(); render();
-};
-const PRESETS = { 'Piste de danse': [170, 120], 'DJ': [110, 56], 'Buffet': [150, 46], 'Bar': [130, 44], 'Scène': [190, 72], 'Gâteau': [70, 40], 'Entrée': [100, 36] };
-$('addItem').onchange = e => {
-  let l = e.target.value, size = PRESETS[l]; e.target.value = '';
-  if (!l) return;
-  if (l === '*') {
-    l = (prompt('Nom de l\'élément (ex. Photobooth, Table des cadeaux)') || '').trim();
-    if (!l) return; size = [120, 60];
-  }
-  const it = { id: uid(), label: l, w: size[0], h: size[1], x: 50, y: 50 };
-  state.items.push(it); sel = { kind: 'item', id: it.id }; save(); render();
-};
-
-const gl = $('guestList');
-gl.addEventListener('dragover', e => { e.preventDefault(); gl.classList.add('over'); });
-gl.addEventListener('dragleave', () => gl.classList.remove('over'));
-gl.addEventListener('drop', e => { e.preventDefault(); gl.classList.remove('over'); assign(e.dataTransfer.getData('text/plain'), null); });
-
-const title = $('title'); title.textContent = state.title || 'Notre plan de table';
-title.onblur = () => { state.title = title.textContent.trim() || 'Notre plan de table'; document.title = state.title; save(); };
-title.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); title.blur(); } };
-document.title = state.title;
-
-$('exportBtn').onclick = () => {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }));
-  a.download = 'plan-de-table.json'; a.click(); URL.revokeObjectURL(a.href);
-};
-$('importFile').onchange = e => {
-  const f = e.target.files[0]; if (!f) return;
-  const r = new FileReader();
-  r.onload = () => {
-    try {
-      const d = JSON.parse(r.result);
-      if (!Array.isArray(d.tables) || !Array.isArray(d.guests)) throw 0;
-      state = d; migrate(); title.textContent = state.title || 'Notre plan de table'; save(); render(); toast('Plan importé');
-    } catch (err) { toast('Fichier invalide'); }
-  };
-  r.readAsText(f); e.target.value = '';
-};
-$('printBtn').onclick = () => window.print();
-$('resetBtn').onclick = () => {
-  if (!confirm('Tout effacer et recommencer ?')) return;
-  state = { title: 'Notre plan de table', menuOptions: [...DEFAULT_MENUS], caterer: defaultCaterer(), dj: defaultDj(), tables: [], guests: [], items: [] };
-  title.textContent = state.title; save(); render();
-};
-render();
-</script>
-</body>
-</html>
+  let catScore = 0;
+  if (catHasName) catScore += 40;
+  if (catPpg > 0) catScore += 25;
+  if (catBooked) catScore += 25;
+  if (catDeposit > 0) catScore += 10;
+  const catPct = !catHasName && !catPpg && !catDeposit && !catBooked ? 0 : Math.min(100, catScore);
+  const catBadge = catPct === 0
+    ? { cls: 'todo', label: 'Pas fait' }
+    : catPct >= 90
+      ? { cls: 'done', label: cat.status }
+      : { cls: 'wip
