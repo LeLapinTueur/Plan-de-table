@@ -50,17 +50,10 @@ form button{flex:none}
 .empty{font-size:.9rem;color:var(--forest-2);font-weight:300;padding:8px 4px}
 .hint{font-size:.8rem;color:var(--forest-2);font-weight:300;margin:10px 0 0}
 .room-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:12px;flex-wrap:wrap}
-.tables{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:20px}
-.table-card{background:var(--panel);border:1px solid var(--line);border-radius:28px;padding:16px;text-align:center;transition:border-color .15s,box-shadow .15s}
-.table-card.over{border-color:var(--gold);box-shadow:0 0 0 3px rgba(181,139,62,.25)}
-.table-card.full .disc{background:var(--forest)}
-.table-top{display:flex;align-items:center;gap:6px;margin-bottom:6px}
 .tname{font-family:var(--serif);font-size:1.4rem;font-weight:600;border:0;background:transparent;padding:2px 4px;width:100%;text-align:left;border-radius:8px}
 .tname:hover,.tname:focus{background:var(--white)}
 .tcap{display:flex;align-items:center;gap:4px;font-size:.8rem;color:var(--forest-2);flex:none}
 .tcap input{width:48px;padding:4px 6px;text-align:center}
-.tdel{border:0;padding:4px 8px;opacity:.4}
-.tdel:hover{opacity:1;background:transparent;color:#a33}
 .seats{position:relative;width:200px;height:200px;margin:8px auto 10px}
 .disc{position:absolute;inset:48px;border-radius:50%;background:var(--forest-2);color:var(--white);display:grid;place-items:center;
   font-family:var(--serif);font-size:1.7rem;line-height:1;transition:background .2s}
@@ -71,6 +64,26 @@ form button{flex:none}
 .seat.on:hover{background:var(--forest);color:var(--white)}
 .names{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;min-height:24px}
 .names .chip{padding:3px 4px 3px 10px;font-size:.8rem;cursor:grab}
+.room{position:relative;width:100%;aspect-ratio:16/10;min-height:480px;border:3px solid var(--forest);border-radius:18px;background:#fbfcf9;
+  background-image:radial-gradient(var(--line) 1.2px,transparent 1.3px);background-size:24px 24px;overflow:hidden}
+.tbl,.item{position:absolute;transform:translate(-50%,-50%);touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
+.tbl.drag,.item.drag{cursor:grabbing;z-index:5;filter:drop-shadow(0 10px 14px rgba(31,58,51,.28))}
+.tbl .seats{margin:0}
+.tbl .seat.on{cursor:inherit}
+.tbl .seat.on:hover{background:var(--blush);color:var(--forest)}
+.tbl .disc{font-size:.9rem;line-height:1.1;padding:6px;text-align:center;box-shadow:0 0 0 0 transparent;transition:box-shadow .15s,background .2s}
+.tbl.full .disc{background:var(--forest)}
+.tbl.sel .disc{box-shadow:0 0 0 4px var(--gold)}
+.tbl.over .disc{box-shadow:0 0 0 7px var(--blush)}
+.item{display:grid;place-items:center;text-align:center;background:var(--blush-2);border:1.5px dashed var(--forest-2);border-radius:12px;font-family:var(--serif);font-size:1.05rem;font-weight:600}
+.item.sel{border-style:solid;border-color:var(--gold);box-shadow:0 0 0 3px rgba(181,139,62,.3)}
+.detail{margin-top:14px;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:14px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.detail .tname{width:210px;flex:none;border:1px solid var(--line);background:var(--white)}
+.detail .names{width:100%;justify-content:flex-start;margin-top:4px}
+.detail .del:hover{background:#a33;border-color:#a33}
+select{font:inherit;font-size:.9rem;border:1px solid var(--forest);background:transparent;color:var(--forest);padding:8px 12px;border-radius:999px;cursor:pointer}
+@media(max-width:860px){.room{aspect-ratio:3/4}}
+@media print{.detail{display:none}.room{break-inside:avoid}}
 .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:var(--forest);color:var(--white);padding:10px 18px;border-radius:999px;
   font-size:.9rem;opacity:0;pointer-events:none;transition:all .25s;z-index:10}
 .toast.show{opacity:1;transform:translate(-50%,0)}
@@ -84,10 +97,14 @@ form button{flex:none}
 <header>
   <div>
     <h1 id="title" contenteditable spellcheck="false" aria-label="Titre du plan de table"></h1>
-    <p class="sub">Plan de table du mariage · faites glisser les invités, ou touchez un invité puis une table</p>
+    <p class="sub">Déplacez les tables pour dessiner votre salle. Glissez les invités sur une table, ou touchez un invité puis une table.</p>
   </div>
   <div class="bar">
     <button id="addTable" class="primary">Ajouter une table</button>
+    <select id="addItem" aria-label="Ajouter un élément à la salle">
+      <option value="">Ajouter un élément</option>
+      <option>Piste de danse</option><option>Buffet</option><option>Bar</option><option>Scène</option><option>Gâteau</option><option>Entrée</option>
+    </select>
     <button id="exportBtn">Exporter</button>
     <label class="btn" tabindex="0">Importer<input id="importFile" type="file" accept="application/json" hidden></label>
     <button id="printBtn">Imprimer</button>
@@ -110,7 +127,8 @@ form button{flex:none}
   </aside>
   <section>
     <div class="room-head"><h2>La salle</h2><span class="count" id="seatInfo"></span></div>
-    <div class="tables" id="tables"></div>
+    <div class="room" id="room"></div>
+    <div class="detail" id="detail"></div>
   </section>
 </main>
 <div class="toast" id="toast" role="status"></div>
@@ -122,11 +140,17 @@ const sample = () => ({
   title: 'Camille & Julien',
   tables: ['Les Pivoines', 'Les Oliviers', 'Les Lavandes'].map(n => ({ id: uid(), name: n, cap: 8 })),
   guests: ['Sophie Martin','Thomas Bernard','Léa Dubois','Hugo Petit','Emma Moreau','Lucas Laurent','Chloé Simon','Nathan Michel','Inès Garcia','Louis Roux']
-    .map(n => ({ id: uid(), name: n, table: null }))
+    .map(n => ({ id: uid(), name: n, table: null })),
+  items: [{ id: uid(), label: 'Piste de danse', w: 170, h: 120, x: 50, y: 76 }, { id: uid(), label: 'Entrée', w: 100, h: 36, x: 50, y: 94 }]
 });
 let state, selected = null;
 try { state = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
 if (!state || !state.tables) state = sample();
+function migrate() {
+  state.items = state.items || [];
+  state.tables.forEach((t, i) => { if (t.x == null) { t.x = 18 + (i % 4) * 22; t.y = 22 + Math.floor(i / 4) * 30; } });
+}
+migrate();
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
 const $ = id => document.getElementById(id);
 const initials = n => n.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
@@ -175,49 +199,112 @@ function render() {
   const seats = state.tables.reduce((a, t) => a + t.cap, 0);
   $('seatInfo').textContent = `${state.tables.length} tables · ${seats} places`;
 
-  // tables
-  const wrap = $('tables'); wrap.innerHTML = '';
+  renderRoom();
+}
+
+let sel = null; // sélection dans la salle : { kind: 'table' | 'item', id }
+const radius = cap => Math.max(60, cap * 30 / (2 * Math.PI));
+
+function renderRoom() {
+  const rm = $('room'); rm.innerHTML = '';
+  state.items.forEach(it => {
+    const el = document.createElement('div');
+    el.className = 'item' + (sel && sel.id === it.id ? ' sel' : '');
+    el.style.cssText = `left:${it.x}%;top:${it.y}%;width:${it.w}px;height:${it.h}px`;
+    el.textContent = it.label;
+    makeDraggable(el, it, 'item'); rm.appendChild(el);
+  });
   state.tables.forEach(t => {
     const guests = state.guests.filter(g => g.table === t.id);
-    const card = document.createElement('div');
-    card.className = 'table-card' + (guests.length >= t.cap ? ' full' : '');
-    card.innerHTML = `
-      <div class="table-top">
-        <input class="tname" value="${esc(t.name)}" aria-label="Nom de la table">
-        <label class="tcap">Places <input type="number" min="1" max="30" value="${t.cap}" aria-label="Nombre de places"></label>
-        <button class="tdel" aria-label="Supprimer ${esc(t.name)}">×</button>
-      </div>
-      <div class="seats"></div><div class="names"></div>`;
-    const seatsEl = card.querySelector('.seats');
-    seatsEl.innerHTML = `<div class="disc"><div>${guests.length}/${t.cap}<small>invités</small></div></div>`;
+    const r = radius(t.cap), box = 2 * (r + 16);
+    const el = document.createElement('div');
+    el.className = 'tbl' + (guests.length >= t.cap ? ' full' : '') + (sel && sel.id === t.id ? ' sel' : '');
+    el.style.left = t.x + '%'; el.style.top = t.y + '%';
+    const seats = document.createElement('div');
+    seats.className = 'seats'; seats.style.width = seats.style.height = box + 'px';
+    seats.innerHTML = `<div class="disc" style="inset:38px"><div>${esc(t.name)}<small>${guests.length}/${t.cap}</small></div></div>`;
     for (let i = 0; i < t.cap; i++) {
-      const a = (2 * Math.PI * i) / t.cap - Math.PI / 2, r = 86;
-      const s = document.createElement(guests[i] ? 'button' : 'div');
+      const a = 2 * Math.PI * i / t.cap - Math.PI / 2;
+      const s = document.createElement('div');
       s.className = 'seat' + (guests[i] ? ' on' : '');
-      s.style.left = (100 + r * Math.cos(a)) + 'px'; s.style.top = (100 + r * Math.sin(a)) + 'px';
-      if (guests[i]) { s.textContent = initials(guests[i].name); s.title = guests[i].name + ' (cliquer pour retirer)'; s.onclick = () => assign(guests[i].id, null); }
-      seatsEl.appendChild(s);
+      s.style.left = (box / 2 + r * Math.cos(a)) + 'px'; s.style.top = (box / 2 + r * Math.sin(a)) + 'px';
+      if (guests[i]) { s.textContent = initials(guests[i].name); s.title = guests[i].name; }
+      seats.appendChild(s);
     }
-    const names = card.querySelector('.names');
-    guests.forEach(g => names.appendChild(chip(g, true)));
-    // événements
-    card.querySelector('.tname').onchange = e => { t.name = e.target.value.trim() || 'Table'; save(); render(); };
-    card.querySelector('input[type=number]').onchange = e => {
-      const v = Math.max(1, Math.min(30, +e.target.value || 1));
-      if (v < guests.length) { toast('Retirez d\'abord des invités'); } else t.cap = v;
-      save(); render();
-    };
-    card.querySelector('.tdel').onclick = () => {
-      if (guests.length && !confirm(`Supprimer ${t.name} ? Ses ${guests.length} invités reviendront dans la liste.`)) return;
-      guests.forEach(g => g.table = null);
-      state.tables = state.tables.filter(x => x.id !== t.id); save(); render();
-    };
-    card.addEventListener('dragover', e => { e.preventDefault(); card.classList.add('over'); });
-    card.addEventListener('dragleave', () => card.classList.remove('over'));
-    card.addEventListener('drop', e => { e.preventDefault(); card.classList.remove('over'); assign(e.dataTransfer.getData('text/plain'), t.id); });
-    card.addEventListener('click', e => { if (selected && !e.target.closest('button,input,.chip')) assign(selected, t.id); });
-    wrap.appendChild(card);
+    el.appendChild(seats);
+    makeDraggable(el, t, 'table');
+    el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('over'); });
+    el.addEventListener('dragleave', () => el.classList.remove('over'));
+    el.addEventListener('drop', e => { e.preventDefault(); el.classList.remove('over'); assign(e.dataTransfer.getData('text/plain'), t.id); });
+    rm.appendChild(el);
   });
+  renderDetail();
+}
+
+// déplacement à la souris ou au doigt ; un simple clic sélectionne
+function makeDraggable(el, obj, kind) {
+  el.addEventListener('pointerdown', e => {
+    if (e.button) return;
+    const rect = $('room').getBoundingClientRect();
+    const sx = e.clientX, sy = e.clientY, ox = obj.x, oy = obj.y;
+    let moved = false;
+    el.setPointerCapture(e.pointerId);
+    const move = ev => {
+      const dx = ev.clientX - sx, dy = ev.clientY - sy;
+      if (!moved && Math.hypot(dx, dy) < 5) return;
+      moved = true; el.classList.add('drag');
+      obj.x = Math.max(4, Math.min(96, ox + dx / rect.width * 100));
+      obj.y = Math.max(4, Math.min(96, oy + dy / rect.height * 100));
+      el.style.left = obj.x + '%'; el.style.top = obj.y + '%';
+    };
+    const up = () => {
+      el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up);
+      sel = { kind, id: obj.id };
+      if (moved) { save(); render(); return; }
+      if (kind === 'table' && selected) { assign(selected, obj.id); return; }
+      render();
+    };
+    el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+  });
+}
+
+function renderDetail() {
+  const d = $('detail');
+  const t = sel && sel.kind === 'table' && state.tables.find(x => x.id === sel.id);
+  const it = sel && sel.kind === 'item' && state.items.find(x => x.id === sel.id);
+  if (!t && !it) {
+    sel = null;
+    d.innerHTML = '<div class="empty">Touchez une table ou un élément pour le modifier. Faites-les glisser pour placer votre salle.</div>';
+    return;
+  }
+  if (it) {
+    d.innerHTML = `<input class="tname" value="${esc(it.label)}" aria-label="Nom de l'élément"><button class="del">Supprimer</button>`;
+    d.querySelector('.tname').onchange = e => { it.label = e.target.value.trim() || 'Élément'; save(); render(); };
+    d.querySelector('.del').onclick = () => { state.items = state.items.filter(x => x !== it); sel = null; save(); render(); };
+    return;
+  }
+  const guests = state.guests.filter(g => g.table === t.id);
+  d.innerHTML = `<input class="tname" value="${esc(t.name)}" aria-label="Nom de la table">
+    <label class="tcap">Places <input type="number" min="1" max="30" value="${t.cap}" aria-label="Nombre de places"></label>
+    <button class="dup">Dupliquer</button><button class="del">Supprimer</button><div class="names"></div>`;
+  const names = d.querySelector('.names');
+  guests.forEach(g => names.appendChild(chip(g, true)));
+  if (!guests.length) names.innerHTML = '<div class="empty">Aucun invité. Glissez un invité sur la table pour l\'asseoir.</div>';
+  d.querySelector('.tname').onchange = e => { t.name = e.target.value.trim() || 'Table'; save(); render(); };
+  d.querySelector('input[type=number]').onchange = e => {
+    const v = Math.max(1, Math.min(30, +e.target.value || 1));
+    if (v < guests.length) toast('Retirez d\'abord des invités'); else t.cap = v;
+    save(); render();
+  };
+  d.querySelector('.dup').onclick = () => {
+    const c = { id: uid(), name: t.name + ' bis', cap: t.cap, x: Math.min(94, t.x + 6), y: Math.min(94, t.y + 8) };
+    state.tables.push(c); sel = { kind: 'table', id: c.id }; save(); render();
+  };
+  d.querySelector('.del').onclick = () => {
+    if (guests.length && !confirm(`Supprimer ${t.name} ? Ses ${guests.length} invités reviendront dans la liste.`)) return;
+    guests.forEach(g => g.table = null);
+    state.tables = state.tables.filter(x => x !== t); sel = null; save(); render();
+  };
 }
 
 // ajout d'invités (un ou plusieurs)
@@ -228,7 +315,17 @@ $('guestForm').onsubmit = e => {
   $('guestName').value = ''; save(); render();
 };
 $('search').oninput = render;
-$('addTable').onclick = () => { state.tables.push({ id: uid(), name: 'Table ' + (state.tables.length + 1), cap: 8 }); save(); render(); };
+$('addTable').onclick = () => {
+  const n = state.tables.length;
+  const t = { id: uid(), name: 'Table ' + (n + 1), cap: 8, x: 15 + (n % 5) * 17, y: 20 + (Math.floor(n / 5) % 3) * 28 };
+  state.tables.push(t); sel = { kind: 'table', id: t.id }; save(); render();
+};
+const PRESETS = { 'Piste de danse': [170, 120], 'Buffet': [150, 46], 'Bar': [130, 44], 'Scène': [190, 72], 'Gâteau': [70, 40], 'Entrée': [100, 36] };
+$('addItem').onchange = e => {
+  const l = e.target.value; if (!l) return;
+  const it = { id: uid(), label: l, w: PRESETS[l][0], h: PRESETS[l][1], x: 50, y: 50 };
+  state.items.push(it); sel = { kind: 'item', id: it.id }; e.target.value = ''; save(); render();
+};
 
 // zone de dépôt « retirer de la table »
 const gl = $('guestList');
@@ -255,7 +352,7 @@ $('importFile').onchange = e => {
     try {
       const d = JSON.parse(r.result);
       if (!Array.isArray(d.tables) || !Array.isArray(d.guests)) throw 0;
-      state = d; title.textContent = state.title || 'Notre plan de table'; save(); render(); toast('Plan importé');
+      state = d; migrate(); title.textContent = state.title || 'Notre plan de table'; save(); render(); toast('Plan importé');
     } catch (err) { toast('Fichier invalide'); }
   };
   r.readAsText(f); e.target.value = '';
@@ -263,7 +360,7 @@ $('importFile').onchange = e => {
 $('printBtn').onclick = () => window.print();
 $('resetBtn').onclick = () => {
   if (!confirm('Tout effacer et recommencer ?')) return;
-  state = { title: 'Notre plan de table', tables: [], guests: [] }; title.textContent = state.title; save(); render();
+  state = { title: 'Notre plan de table', tables: [], guests: [], items: [] }; title.textContent = state.title; save(); render();
 };
 render();
 </script>
