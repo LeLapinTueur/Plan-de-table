@@ -101,8 +101,10 @@ select{font:inherit;font-size:.9rem;border:1px solid var(--forest);background:va
 .menus-panel{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:22px}
 .menus-top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px}
 .menu-summary{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
-.summary-pill{background:var(--white);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:.84rem;color:var(--forest)}
+.summary-pill{display:inline-flex;align-items:center;gap:6px;background:var(--white);border:1px solid var(--line);border-radius:999px;padding:5px 10px 5px 12px;font-size:.84rem;color:var(--forest)}
 .summary-pill strong{color:var(--forest-2)}
+.summary-pill .rm-menu{border:0;background:transparent;padding:0 3px;font-size:.95rem;line-height:1;opacity:.5;border-radius:50%}
+.summary-pill .rm-menu:hover{opacity:1;background:var(--blush-2);color:var(--forest)}
 .menu-types-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--white);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:18px}
 .menu-types-bar input{max-width:220px}
 .table-wrap{overflow:auto;background:var(--white);border:1px solid var(--line);border-radius:16px}
@@ -217,7 +219,7 @@ table.guest-menus tr:hover td{background:#fafcf9}
 
 <script>
 const KEY = 'plan-de-table-v1';
-const DEFAULT_MENUS = ['Non défini'];
+const DEFAULT_MENUS = ['Non défini', 'Viande', 'Poisson', 'Végétarien', 'Enfant'];
 const uid = () => Math.random().toString(36).slice(2, 9);
 const sample = () => ({
   title: 'Camille & Julien',
@@ -259,6 +261,23 @@ const initials = n => n.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].t
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 let toastT;
 function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2200); }
+
+function removeMenuOption(menuName) {
+  if (menuName === 'Non défini') return;
+  const affected = state.guests.filter(g => (g.menu || 'Non défini') === menuName).length;
+  const msg = affected
+    ? `Retirer le menu « ${menuName} » ? ${affected} invité(s) repasseront sur « Non défini ».`
+    : `Retirer le menu « ${menuName} » ?`;
+  if (!confirm(msg)) return;
+  state.menuOptions = state.menuOptions.filter(m => m !== menuName);
+  state.guests.forEach(g => {
+    if (g.menu === menuName) g.menu = 'Non défini';
+  });
+  if ($('menuFilter').value === menuName) $('menuFilter').value = '';
+  save();
+  render();
+  toast(`Menu « ${menuName} » retiré`);
+}
 
 // Infobulle au survol d'un invité dans une table
 const tip = $('hoverTip');
@@ -356,10 +375,17 @@ function renderMenusView() {
   if (state.menuOptions.includes(currentFilter)) filterSel.value = currentFilter;
 
   const summary = $('menuSummary');
-  summary.innerHTML = state.menuOptions.map(m => {
+  summary.innerHTML = '';
+  state.menuOptions.forEach(m => {
     const c = state.guests.filter(g => (g.menu || 'Non défini') === m).length;
-    return `<span class="summary-pill"><strong>${c}</strong> · ${esc(m)}</span>`;
-  }).join('');
+    const pill = document.createElement('span');
+    pill.className = 'summary-pill';
+    pill.innerHTML = `<strong>${c}</strong> · ${esc(m)}` +
+      (m !== 'Non défini' ? `<button type="button" class="rm-menu" title="Retirer le menu ${esc(m)}" aria-label="Retirer le menu ${esc(m)}">×</button>` : '');
+    const rmBtn = pill.querySelector('.rm-menu');
+    if (rmBtn) rmBtn.onclick = () => removeMenuOption(m);
+    summary.appendChild(pill);
+  });
 
   const q = $('menuSearch').value.trim().toLowerCase();
   const f = filterSel.value;
