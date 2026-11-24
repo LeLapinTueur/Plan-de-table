@@ -37,12 +37,15 @@ button.primary:hover{background:var(--forest-2)}
 main{display:grid;grid-template-columns:320px 1fr;gap:24px;padding:16px clamp(16px,4vw,48px) 48px;align-items:start}
 main.hidden{display:none}
 aside{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px;position:sticky;top:12px;max-height:calc(100vh - 24px);display:flex;flex-direction:column}
-aside h2,.room-head h2,.menus-panel h2{font-family:var(--serif);font-size:1.6rem;margin:0 0 4px;font-weight:600}
+aside h2,.room-head h2,.menus-panel h2,.dj-panel h2{font-family:var(--serif);font-size:1.6rem;margin:0 0 4px;font-weight:600}
 .count{font-size:.85rem;color:var(--forest-2);margin:0 0 12px}
 .progress{height:4px;background:var(--line);border-radius:4px;overflow:hidden;margin-bottom:14px}
 .progress i{display:block;height:100%;background:var(--gold);transition:width .3s}
 form{display:flex;gap:6px;margin-bottom:8px}
-input[type=text],input[type=search],input[type=number]{font:inherit;font-size:.9rem;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:var(--white);color:var(--forest);min-width:0;width:100%}
+input[type=text],input[type=search],input[type=number],input[type=tel],input[type=email],input[type=url],textarea{
+  font:inherit;font-size:.9rem;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:var(--white);color:var(--forest);min-width:0;width:100%
+}
+textarea{resize:vertical;min-height:84px;line-height:1.4}
 form button{flex:none}
 #guestList{overflow:auto;display:flex;flex-direction:column;gap:6px;padding:4px 2px;min-height:80px;flex:1}
 #guestList.over{outline:2px dashed var(--gold);outline-offset:2px;border-radius:12px}
@@ -95,10 +98,10 @@ form button{flex:none}
 .detail .del:hover{background:#a33;border-color:#a33}
 select{font:inherit;font-size:.9rem;border:1px solid var(--forest);background:var(--white);color:var(--forest);padding:7px 12px;border-radius:999px;cursor:pointer}
 
-/* Onglet Invités & Menus */
-.menus-view{padding:16px clamp(16px,4vw,48px) 48px}
-.menus-view.hidden{display:none}
-.menus-panel{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:22px}
+/* Onglets secondaires (Invités & Menus + DJ) */
+.menus-view,.dj-view{padding:16px clamp(16px,4vw,48px) 48px}
+.menus-view.hidden,.dj-view.hidden{display:none}
+.menus-panel,.dj-panel{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:22px}
 .menus-top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px}
 .menu-summary{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
 .summary-pill{display:inline-flex;align-items:center;gap:6px;background:var(--white);border:1px solid var(--line);border-radius:999px;padding:5px 10px 5px 12px;font-size:.84rem;color:var(--forest)}
@@ -116,14 +119,26 @@ table.guest-menus tr:hover td{background:#fafcf9}
 .badge-unplaced{font-size:.8rem;color:var(--forest-2);font-style:italic}
 .badge-placed{display:inline-block;background:var(--blush-2);color:var(--forest);padding:2px 9px;border-radius:999px;font-size:.82rem;font-weight:500}
 
-/* Infobulle survol invité dans la table */
+/* Grille de la fiche DJ */
+.dj-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:18px;margin-top:16px}
+.dj-card{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.dj-card h3{font-family:var(--serif);font-size:1.3rem;margin:0;color:var(--forest);border-bottom:1px solid var(--line);padding-bottom:8px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:.8rem;font-weight:500;color:var(--forest-2)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.dj-status-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:.84rem;font-weight:500;background:var(--blush-2);color:var(--forest)}
+.dj-status-badge.ok{background:var(--forest);color:var(--white)}
+.dj-balance{background:var(--bg);border-radius:12px;padding:10px 12px;font-size:.86rem;display:flex;justify-content:space-between;align-items:center}
+.dj-balance strong{font-size:1rem;color:var(--forest)}
+
+/* Infobulle survol invité / DJ */
 .hover-tip{position:fixed;pointer-events:none;z-index:30;background:var(--forest);color:var(--white);padding:8px 13px;
   border-radius:12px;font-size:.84rem;line-height:1.35;box-shadow:0 8px 20px rgba(31,58,51,.25);opacity:0;transform:translateY(4px);transition:opacity .12s,transform .12s}
 .hover-tip.show{opacity:1;transform:translateY(0)}
 .hover-tip small{display:block;color:var(--blush);font-size:.76rem;margin-top:2px}
 
 @media(max-width:860px){.room{aspect-ratio:3/4} main{grid-template-columns:1fr}aside{position:static;max-height:none}#guestList{max-height:260px}}
-@media print{.detail,.tabs-wrap,.menus-view,.hover-tip{display:none!important}.room{break-inside:avoid}body{background:#fff}aside,.bar,form,.tdel,.tcap,.hint,.toast{display:none!important}main{display:block}}
+@media print{.detail,.tabs-wrap,.menus-view,.dj-view,.hover-tip{display:none!important}.room{break-inside:avoid}body{background:#fff}aside,.bar,form,.tdel,.tcap,.hint,.toast{display:none!important}main{display:block}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:var(--forest);color:var(--white);padding:10px 18px;border-radius:999px;
   font-size:.9rem;opacity:0;pointer-events:none;transition:all .25s;z-index:40}
@@ -140,7 +155,7 @@ table.guest-menus tr:hover td{background:#fafcf9}
     <button id="addTable" class="primary">Ajouter une table</button>
     <select id="addItem" aria-label="Ajouter un élément à la salle">
       <option value="">Ajouter un élément</option>
-      <option>Piste de danse</option><option>Buffet</option><option>Bar</option><option>Scène</option><option>Gâteau</option><option>Entrée</option>
+      <option>Piste de danse</option><option>DJ</option><option>Buffet</option><option>Bar</option><option>Scène</option><option>Gâteau</option><option>Entrée</option>
       <option value="*">Autre, nom libre…</option>
     </select>
     <button id="exportBtn">Exporter</button>
@@ -153,6 +168,7 @@ table.guest-menus tr:hover td{background:#fafcf9}
 <nav class="tabs-wrap" aria-label="Navigation principale">
   <button class="tab-btn active" data-tab="room" id="tabRoomBtn">Plan de salle</button>
   <button class="tab-btn" data-tab="menus" id="tabMenusBtn">Invités &amp; Menus</button>
+  <button class="tab-btn" data-tab="dj" id="tabDjBtn">DJ &amp; Animation</button>
 </nav>
 
 <main id="roomView">
@@ -214,16 +230,130 @@ table.guest-menus tr:hover td{background:#fafcf9}
   </div>
 </section>
 
+<section class="dj-view hidden" id="djView" aria-label="Informations sur le DJ">
+  <div class="dj-panel">
+    <div class="menus-top">
+      <div>
+        <h2>DJ &amp; Animation musicale</h2>
+        <p class="count" style="margin:0">Centralisez les coordonnées, disponibilités, tarifs et consignes musicales.</p>
+      </div>
+      <span class="dj-status-badge" id="djStatusBadge">À contacter</span>
+    </div>
+
+    <div class="dj-grid">
+      <div class="dj-card">
+        <h3>Identité &amp; Contact</h3>
+        <div class="field">
+          <label for="djName">Nom ou Pseudo de scène</label>
+          <input type="text" id="djName" placeholder="Ex. DJ Alex / Sono Événement">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="djPhone">Téléphone</label>
+            <input type="tel" id="djPhone" placeholder="06 12 34 56 78">
+          </div>
+          <div class="field">
+            <label for="djEmail">E-mail</label>
+            <input type="email" id="djEmail" placeholder="contact@dj-exemple.fr">
+          </div>
+        </div>
+        <div class="field">
+          <label for="djSocial">Site web / Réseaux sociaux</label>
+          <input type="url" id="djSocial" placeholder="https://instagram.com/...">
+        </div>
+      </div>
+
+      <div class="dj-card">
+        <h3>Disponibilité &amp; Horaires</h3>
+        <div class="field">
+          <label for="djStatus">Statut de réservation</label>
+          <select id="djStatus" style="border-radius:12px">
+            <option value="À contacter">À contacter</option>
+            <option value="Disponible · Devis demandé">Disponible · Devis demandé</option>
+            <option value="Option posée">Option posée</option>
+            <option value="Confirmé / Réservé">Confirmé / Réservé</option>
+            <option value="Indisponible">Indisponible</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="djDate">Date retenue</label>
+            <input type="text" id="djDate" placeholder="Ex. Samedi 14 juin">
+          </div>
+          <div class="field">
+            <label for="djSetupTime">Arrivée / Installation</label>
+            <input type="text" id="djSetupTime" placeholder="Ex. 15h30">
+          </div>
+        </div>
+        <div class="field">
+          <label for="djHours">Plage horaire de prestation</label>
+          <input type="text" id="djHours" placeholder="Ex. 18h00 – 04h00 (cocktails + soirée)">
+        </div>
+      </div>
+
+      <div class="dj-card">
+        <h3>Tarif &amp; Règlement</h3>
+        <div class="field-row">
+          <div class="field">
+            <label for="djPrice">Tarif prestation (€)</label>
+            <input type="number" id="djPrice" min="0" step="10" placeholder="1200">
+          </div>
+          <div class="field">
+            <label for="djDeposit">Acompte versé (€)</label>
+            <input type="number" id="djDeposit" min="0" step="10" placeholder="350">
+          </div>
+        </div>
+        <div class="dj-balance">
+          <span>Reste à régler :</span>
+          <strong id="djBalance">0 €</strong>
+        </div>
+        <div class="field">
+          <label for="djEquipment">Matériel &amp; options incluses</label>
+          <textarea id="djEquipment" placeholder="Sonorisation salle + extérieur, jeux de lumière, micro sans fil, fumée lourde, heure sup…"></textarea>
+        </div>
+      </div>
+
+      <div class="dj-card">
+        <h3>Renseignements &amp; Consignes musicales</h3>
+        <div class="field">
+          <label for="djKeySongs">Moments clés (entrée, ouverture de bal, gâteau…)</label>
+          <textarea id="djKeySongs" placeholder="Entrée salle : ...&#10;Ouverture de bal : ...&#10;Arrivée du gâteau : ..."></textarea>
+        </div>
+        <div class="field">
+          <label for="djNotes">Notes techniques, repas prestataire &amp; blacklist</label>
+          <textarea id="djNotes" placeholder="Repas prévu pour le DJ, prise 16A dédiée, styles à privilégier ou titres à éviter…"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <div class="hover-tip" id="hoverTip" role="tooltip"></div>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
 const KEY = 'plan-de-table-v1';
 const DEFAULT_MENUS = ['Non défini', 'Viande', 'Poisson', 'Végétarien', 'Enfant'];
+const defaultDj = () => ({
+  name: '',
+  phone: '',
+  email: '',
+  social: '',
+  status: 'À contacter',
+  date: '',
+  setupTime: '',
+  hours: '',
+  price: '',
+  deposit: '',
+  equipment: '',
+  keySongs: '',
+  notes: ''
+});
 const uid = () => Math.random().toString(36).slice(2, 9);
 const sample = () => ({
   title: 'Camille & Julien',
   menuOptions: [...DEFAULT_MENUS],
+  dj: defaultDj(),
   tables: ['Les Pivoines', 'Les Oliviers', 'Les Lavandes'].map(n => ({ id: uid(), name: n, cap: 8 })),
   guests: ['Sophie Martin','Thomas Bernard','Léa Dubois','Hugo Petit','Emma Moreau','Lucas Laurent','Chloé Simon','Nathan Michel','Inès Garcia','Louis Roux']
     .map((n, idx) => ({ id: uid(), name: n, table: null, menu: DEFAULT_MENUS[(idx % 4) + 1] })),
@@ -234,6 +364,7 @@ try { state = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
 if (!state || !state.tables) state = sample();
 function migrate() {
   state.items = state.items || [];
+  state.dj = { ...defaultDj(), ...(state.dj || {}) };
   if (!Array.isArray(state.menuOptions) || !state.menuOptions.length) {
     state.menuOptions = [...DEFAULT_MENUS];
   } else if (!state.menuOptions.includes('Non défini')) {
@@ -279,14 +410,17 @@ function removeMenuOption(menuName) {
   toast(`Menu « ${menuName} » retiré`);
 }
 
-// Infobulle au survol d'un invité dans une table
+// Infobulle au survol d'un invité dans une table ou de l'élément DJ
 const tip = $('hoverTip');
+function showTipHtml(e, html) {
+  tip.innerHTML = html;
+  tip.classList.add('show');
+  moveGuestTip(e);
+}
 function showGuestTip(e, g) {
   if (!g) return;
   const tbl = state.tables.find(t => t.id === g.table);
-  tip.innerHTML = `<strong>${esc(g.name)}</strong><small>Menu : ${esc(g.menu || 'Non défini')}${tbl ? ' · ' + esc(tbl.name) : ''}</small>`;
-  tip.classList.add('show');
-  moveGuestTip(e);
+  showTipHtml(e, `<strong>${esc(g.name)}</strong><small>Menu : ${esc(g.menu || 'Non défini')}${tbl ? ' · ' + esc(tbl.name) : ''}</small>`);
 }
 function moveGuestTip(e) {
   const pad = 14;
@@ -301,18 +435,33 @@ function attachGuestHover(el, g) {
   el.addEventListener('pointermove', e => { if (tip.classList.contains('show')) moveGuestTip(e); });
   el.addEventListener('pointerleave', hideGuestTip);
 }
+function attachDjHover(el) {
+  el.addEventListener('pointerenter', e => {
+    if (e.pointerType && e.pointerType !== 'mouse') return;
+    const dj = state.dj || {};
+    const title = dj.name ? esc(dj.name) : 'DJ (non renseigné)';
+    const details = [dj.status, dj.hours, dj.price ? dj.price + ' €' : ''].filter(Boolean).join(' · ');
+    showTipHtml(e, `<strong>🎧 ${title}</strong><small>${esc(details || 'Renseignez sa fiche dans l’onglet DJ')}</small>`);
+  });
+  el.addEventListener('pointermove', e => { if (tip.classList.contains('show')) moveGuestTip(e); });
+  el.addEventListener('pointerleave', hideGuestTip);
+}
 
 function setTab(tab) {
   activeTab = tab;
   $('roomView').classList.toggle('hidden', tab !== 'room');
   $('menusView').classList.toggle('hidden', tab !== 'menus');
+  $('djView').classList.toggle('hidden', tab !== 'dj');
   $('tabRoomBtn').classList.toggle('active', tab === 'room');
   $('tabMenusBtn').classList.toggle('active', tab === 'menus');
+  $('tabDjBtn').classList.toggle('active', tab === 'dj');
   hideGuestTip();
   if (tab === 'menus') renderMenusView();
+  if (tab === 'dj') renderDjView();
 }
 $('tabRoomBtn').onclick = () => setTab('room');
 $('tabMenusBtn').onclick = () => setTab('menus');
+$('tabDjBtn').onclick = () => setTab('dj');
 
 function assign(gid, tid, seat) {
   const g = state.guests.find(x => x.id === gid); if (!g) return;
@@ -365,6 +514,7 @@ function render() {
 
   renderRoom();
   if (activeTab === 'menus') renderMenusView();
+  if (activeTab === 'dj') renderDjView();
 }
 
 function renderMenusView() {
@@ -433,6 +583,54 @@ function renderMenusView() {
   });
 }
 
+// Gestion de l'onglet DJ
+const DJ_FIELDS = [
+  ['djName', 'name'],
+  ['djPhone', 'phone'],
+  ['djEmail', 'email'],
+  ['djSocial', 'social'],
+  ['djStatus', 'status'],
+  ['djDate', 'date'],
+  ['djSetupTime', 'setupTime'],
+  ['djHours', 'hours'],
+  ['djPrice', 'price'],
+  ['djDeposit', 'deposit'],
+  ['djEquipment', 'equipment'],
+  ['djKeySongs', 'keySongs'],
+  ['djNotes', 'notes']
+];
+
+function updateDjSummaryUI() {
+  const dj = state.dj;
+  const badge = $('djStatusBadge');
+  badge.textContent = dj.status || 'À contacter';
+  badge.classList.toggle('ok', dj.status === 'Confirmé / Réservé');
+
+  const price = parseFloat(dj.price) || 0;
+  const deposit = parseFloat(dj.deposit) || 0;
+  const rest = Math.max(0, price - deposit);
+  $('djBalance').textContent = `${rest.toLocaleString('fr-FR')} €`;
+}
+
+function renderDjView() {
+  DJ_FIELDS.forEach(([elId, key]) => {
+    const el = $(elId);
+    if (el) el.value = state.dj[key] ?? '';
+  });
+  updateDjSummaryUI();
+}
+
+DJ_FIELDS.forEach(([elId, key]) => {
+  const el = $(elId);
+  if (!el) return;
+  const evt = el.tagName === 'SELECT' ? 'change' : 'input';
+  el.addEventListener(evt, () => {
+    state.dj[key] = el.value;
+    save();
+    updateDjSummaryUI();
+  });
+});
+
 $('addMenuTypeBtn').onclick = () => {
   const inp = $('newMenuName');
   const val = inp.value.trim();
@@ -483,6 +681,7 @@ function renderRoom() {
       el.style.color = '#fff'; el.style.textShadow = '0 1px 5px rgba(0,0,0,.7)';
     }
     el.textContent = it.label;
+    if (/^dj\b/i.test(it.label.trim())) attachDjHover(el);
     makeDraggable(el, it, 'item'); rm.appendChild(el);
   });
   state.tables.forEach(t => {
@@ -653,7 +852,7 @@ $('addTable').onclick = () => {
   const t = { id: uid(), name: 'Table ' + (n + 1), cap: 8, shape: 'round', w: 100, h: 100, x: 15 + (n % 5) * 17, y: 20 + (Math.floor(n / 5) % 3) * 28 };
   state.tables.push(t); sel = { kind: 'table', id: t.id }; save(); render();
 };
-const PRESETS = { 'Piste de danse': [170, 120], 'Buffet': [150, 46], 'Bar': [130, 44], 'Scène': [190, 72], 'Gâteau': [70, 40], 'Entrée': [100, 36] };
+const PRESETS = { 'Piste de danse': [170, 120], 'DJ': [110, 56], 'Buffet': [150, 46], 'Bar': [130, 44], 'Scène': [190, 72], 'Gâteau': [70, 40], 'Entrée': [100, 36] };
 $('addItem').onchange = e => {
   let l = e.target.value, size = PRESETS[l]; e.target.value = '';
   if (!l) return;
@@ -695,7 +894,7 @@ $('importFile').onchange = e => {
 $('printBtn').onclick = () => window.print();
 $('resetBtn').onclick = () => {
   if (!confirm('Tout effacer et recommencer ?')) return;
-  state = { title: 'Notre plan de table', menuOptions: [...DEFAULT_MENUS], tables: [], guests: [], items: [] };
+  state = { title: 'Notre plan de table', menuOptions: [...DEFAULT_MENUS], dj: defaultDj(), tables: [], guests: [], items: [] };
   title.textContent = state.title; save(); render();
 };
 render();
