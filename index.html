@@ -38,6 +38,7 @@ main{display:grid;grid-template-columns:320px 1fr;gap:24px;padding:16px clamp(16
 main.hidden{display:none}
 aside{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px;position:sticky;top:12px;max-height:calc(100vh - 24px);display:flex;flex-direction:column}
 aside h2,.room-head h2,.menus-panel h2,.dj-panel h2{font-family:var(--serif);font-size:1.6rem;margin:0 0 4px;font-weight:600}
+.menus-panel h3{font-family:var(--serif);font-size:1.25rem;margin:0;font-weight:600;color:var(--forest)}
 .count{font-size:.85rem;color:var(--forest-2);margin:0 0 12px}
 .progress{height:4px;background:var(--line);border-radius:4px;overflow:hidden;margin-bottom:14px}
 .progress i{display:block;height:100%;background:var(--gold);transition:width .3s}
@@ -45,7 +46,7 @@ form{display:flex;gap:6px;margin-bottom:8px}
 input[type=text],input[type=search],input[type=number],input[type=tel],input[type=email],input[type=url],textarea{
   font:inherit;font-size:.9rem;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:var(--white);color:var(--forest);min-width:0;width:100%
 }
-textarea{resize:vertical;min-height:84px;line-height:1.4}
+textarea{resize:vertical;min-height:76px;line-height:1.4}
 form button{flex:none}
 #guestList{overflow:auto;display:flex;flex-direction:column;gap:6px;padding:4px 2px;min-height:80px;flex:1}
 #guestList.over{outline:2px dashed var(--gold);outline-offset:2px;border-radius:12px}
@@ -103,6 +104,9 @@ select{font:inherit;font-size:.9rem;border:1px solid var(--forest);background:va
 .menus-view.hidden,.dj-view.hidden{display:none}
 .menus-panel,.dj-panel{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:22px}
 .menus-top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px}
+.caterer-box{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:18px}
+.caterer-head{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.caterer-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
 .menu-summary{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
 .summary-pill{display:inline-flex;align-items:center;gap:6px;background:var(--white);border:1px solid var(--line);border-radius:999px;padding:5px 10px 5px 12px;font-size:.84rem;color:var(--forest)}
 .summary-pill strong{color:var(--forest-2)}
@@ -195,7 +199,7 @@ table.guest-menus tr:hover td{background:#fafcf9}
   <div class="menus-panel">
     <div class="menus-top">
       <div>
-        <h2>Invités &amp; choix de menus</h2>
+        <h2>Traiteur, Invités &amp; Menus</h2>
         <p class="count" id="menusCount" style="margin:0"></p>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -203,6 +207,59 @@ table.guest-menus tr:hover td{background:#fafcf9}
         <select id="menuFilter" aria-label="Filtrer par menu">
           <option value="">Tous les menus</option>
         </select>
+      </div>
+    </div>
+
+    <div class="caterer-box" aria-label="Détails du traiteur retenu">
+      <div class="caterer-head">
+        <h3>Traiteur retenu</h3>
+        <span class="dj-status-badge" id="catererStatusBadge">Devis en cours</span>
+      </div>
+      <div class="caterer-grid">
+        <div class="field">
+          <label for="catererName">Nom / Maison traiteur</label>
+          <input type="text" id="catererName" placeholder="Ex. Maison Saveurs &amp; Réceptions">
+        </div>
+        <div class="field">
+          <label for="catererStatus">Statut</label>
+          <select id="catererStatus" style="border-radius:12px">
+            <option value="Devis en cours">Devis en cours</option>
+            <option value="Dégustation effectuée">Dégustation effectuée</option>
+            <option value="Devis validé / Contrat signé">Devis validé / Contrat signé</option>
+            <option value="Confirmé">Confirmé</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="catererPhone">Téléphone</label>
+          <input type="tel" id="catererPhone" placeholder="03 23 00 00 00">
+        </div>
+        <div class="field">
+          <label for="catererEmail">E-mail</label>
+          <input type="email" id="catererEmail" placeholder="contact@traiteur.fr">
+        </div>
+        <div class="field">
+          <label for="catererPricePerGuest">Tarif / invité (€)</label>
+          <input type="number" id="catererPricePerGuest" min="0" step="1" placeholder="85">
+        </div>
+        <div class="field">
+          <label for="catererExtraFee">Forfait / frais annexes (€)</label>
+          <input type="number" id="catererExtraFee" min="0" step="10" placeholder="450">
+        </div>
+        <div class="field">
+          <label for="catererDeposit">Acompte versé (€)</label>
+          <input type="number" id="catererDeposit" min="0" step="10" placeholder="1000">
+        </div>
+        <div class="field">
+          <label>Estimation &amp; Reste à régler</label>
+          <div class="dj-balance">
+            <span id="catererTotalText">Total : 0 €</span>
+            <strong id="catererBalance">Reste : 0 €</strong>
+          </div>
+        </div>
+      </div>
+      <div class="field" style="margin-top:12px">
+        <label for="catererNotes">Dégustation, plats retenus, horaires de service &amp; remarques</label>
+        <textarea id="catererNotes" placeholder="Entrée / plat / dessert retenus, régimes spéciaux, repas prestataires inclus, horaires vin d'honneur &amp; dîner…"></textarea>
       </div>
     </div>
 
@@ -349,10 +406,21 @@ const defaultDj = () => ({
   keySongs: '',
   notes: ''
 });
+const defaultCaterer = () => ({
+  name: '',
+  status: 'Devis en cours',
+  phone: '',
+  email: '',
+  pricePerGuest: '',
+  extraFee: '',
+  deposit: '',
+  notes: ''
+});
 const uid = () => Math.random().toString(36).slice(2, 9);
 const sample = () => ({
   title: 'Camille & Julien',
   menuOptions: [...DEFAULT_MENUS],
+  caterer: defaultCaterer(),
   dj: defaultDj(),
   tables: ['Les Pivoines', 'Les Oliviers', 'Les Lavandes'].map(n => ({ id: uid(), name: n, cap: 8 })),
   guests: ['Sophie Martin','Thomas Bernard','Léa Dubois','Hugo Petit','Emma Moreau','Lucas Laurent','Chloé Simon','Nathan Michel','Inès Garcia','Louis Roux']
@@ -365,6 +433,7 @@ if (!state || !state.tables) state = sample();
 function migrate() {
   state.items = state.items || [];
   state.dj = { ...defaultDj(), ...(state.dj || {}) };
+  state.caterer = { ...defaultCaterer(), ...(state.caterer || {}) };
   if (!Array.isArray(state.menuOptions) || !state.menuOptions.length) {
     state.menuOptions = [...DEFAULT_MENUS];
   } else if (!state.menuOptions.includes('Non défini')) {
@@ -517,7 +586,57 @@ function render() {
   if (activeTab === 'dj') renderDjView();
 }
 
+// Gestion du traiteur dans la partie Menus
+const CATERER_FIELDS = [
+  ['catererName', 'name'],
+  ['catererStatus', 'status'],
+  ['catererPhone', 'phone'],
+  ['catererEmail', 'email'],
+  ['catererPricePerGuest', 'pricePerGuest'],
+  ['catererExtraFee', 'extraFee'],
+  ['catererDeposit', 'deposit'],
+  ['catererNotes', 'notes']
+];
+
+function updateCatererSummaryUI() {
+  const cat = state.caterer;
+  const badge = $('catererStatusBadge');
+  badge.textContent = cat.status || 'Devis en cours';
+  badge.classList.toggle('ok', cat.status === 'Confirmé' || cat.status === 'Devis validé / Contrat signé');
+
+  const guestsCount = state.guests.length;
+  const ppg = parseFloat(cat.pricePerGuest) || 0;
+  const extra = parseFloat(cat.extraFee) || 0;
+  const deposit = parseFloat(cat.deposit) || 0;
+  const total = guestsCount * ppg + extra;
+  const rest = Math.max(0, total - deposit);
+
+  $('catererTotalText').textContent = `Total estimé (${guestsCount} inv.) : ${total.toLocaleString('fr-FR')} €`;
+  $('catererBalance').textContent = `Reste : ${rest.toLocaleString('fr-FR')} €`;
+}
+
+function renderCatererFields() {
+  CATERER_FIELDS.forEach(([elId, key]) => {
+    const el = $(elId);
+    if (el) el.value = state.caterer[key] ?? '';
+  });
+  updateCatererSummaryUI();
+}
+
+CATERER_FIELDS.forEach(([elId, key]) => {
+  const el = $(elId);
+  if (!el) return;
+  const evt = el.tagName === 'SELECT' ? 'change' : 'input';
+  el.addEventListener(evt, () => {
+    state.caterer[key] = el.value;
+    save();
+    updateCatererSummaryUI();
+  });
+});
+
 function renderMenusView() {
+  renderCatererFields();
+
   const filterSel = $('menuFilter');
   const currentFilter = filterSel.value;
   filterSel.innerHTML = `<option value="">Tous les menus</option>` +
@@ -894,7 +1013,7 @@ $('importFile').onchange = e => {
 $('printBtn').onclick = () => window.print();
 $('resetBtn').onclick = () => {
   if (!confirm('Tout effacer et recommencer ?')) return;
-  state = { title: 'Notre plan de table', menuOptions: [...DEFAULT_MENUS], dj: defaultDj(), tables: [], guests: [], items: [] };
+  state = { title: 'Notre plan de table', menuOptions: [...DEFAULT_MENUS], caterer: defaultCaterer(), dj: defaultDj(), tables: [], guests: [], items: [] };
   title.textContent = state.title; save(); render();
 };
 render();
